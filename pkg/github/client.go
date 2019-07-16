@@ -55,7 +55,7 @@ func CreateRelease(log *logrus.Logger, token, owner, repo, branch, tag string, f
 		}
 	}
 
-	log.Printf("Successfully created %s release", release.GetName())
+	log.Printf("Successfully created %s release", release.GetTagName())
 	return nil
 }
 

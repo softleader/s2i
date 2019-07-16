@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/softleader/depl/pkg/deployer"
 	"github.com/softleader/depl/pkg/github"
 	"github.com/softleader/depl/pkg/jib"
 	"github.com/softleader/depl/pkg/test"
@@ -10,17 +11,18 @@ import (
 )
 
 type buildCmd struct {
-	force        bool
-	sourceOwner  string
-	sourceRepo   string
-	sourceBranch string
-	skipTests    bool
-	configServer string
-	configLabel  string
-	image        string
-	tag          string
-	deployer     string
-	auth         *jib.Auth
+	force           bool
+	sourceOwner     string
+	sourceRepo      string
+	sourceBranch    string
+	skipTests       bool
+	configServer    string
+	configLabel     string
+	image           string
+	tag             string
+	deployer        string
+	auth            *jib.Auth
+	dockerServiceID string
 }
 
 func newBuildCmd() *cobra.Command {
@@ -59,6 +61,7 @@ func newBuildCmd() *cobra.Command {
 	f.StringVar(&c.deployer, "deployer", "http://softleader.com.tw:5678", "deployer to deploy")
 	f.StringVar(&c.auth.Username, "jib-username", "dev", "username of docker registry for jib to build")
 	f.StringVar(&c.auth.Password, "jib-password", "sleader", "password of docker registry for jib to build")
+	f.StringVar(&c.dockerServiceID, "docker-service-id", "", "docker service id to update image")
 	return cmd
 }
 
@@ -74,5 +77,11 @@ func (c *buildCmd) run() error {
 	if err := github.CreateRelease(logrus.StandardLogger(), token, c.sourceOwner, c.sourceRepo, c.sourceBranch, c.tag, c.force); err != nil {
 		return err
 	}
+	if c.dockerServiceID != "" {
+		if err := deployer.UpdateService(logrus.StandardLogger(), "depl", metadata.String(), c.deployer, c.dockerServiceID, c.image, c.tag); err != nil {
+			return err
+		}
+	}
+	logrus.Printf("Everything is all set, you are good to go.")
 	return nil
 }

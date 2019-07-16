@@ -20,6 +20,10 @@ func (c *buildCmd) prompt() error {
 	}
 	c.force = selected == "yes"
 
+	if err := ask("Docker service id to update image (leave blank if you don't need to update)", c.dockerServiceID, &c.dockerServiceID); err != nil {
+		return err
+	}
+
 	sp = promptui.Select{
 		Label: "Do you want to go through all of the questions?",
 		Items: []string{"no", "yes"},
@@ -32,7 +36,7 @@ func (c *buildCmd) prompt() error {
 		pretty.Print(c)
 
 		sp = promptui.Select{
-			Label: "Good to go?",
+			Label: "Is this OK?",
 			Items: []string{"yes", "no"},
 		}
 		_, selected, err = sp.Run()
