@@ -1,0 +1,12 @@
+name: depl
+version: 0.1.0
+usage: deploy application to SoftLeader docker swarm ecosystem
+description: Depl is a command line tool for deploy application to SoftLeader docker swarm ecosystem
+exec:
+  command: $SL_PLUGIN_DIR/depl
+ignoreglobalflags: false
+github:
+  scopes:
+  - read:org
+  - user
+  - repo
