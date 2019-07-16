@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"strconv"
-	"strings"
 )
 
 var (
@@ -43,12 +42,8 @@ func newRootCmd(args []string) *cobra.Command {
 			}
 			logrus.SetOutput(cmd.OutOrStdout())
 			logrus.SetFormatter(&formatter.PlainFormatter{})
-
-			// use os.LookupEnv to retrieve the specific value of the environment (e.g. os.LookupEnv("SL_TOKEN"))
-			for _, env := range os.Environ() {
-				if strings.HasPrefix(env, "SL_") {
-					logrus.Println(env)
-				}
+			if verbose {
+				logrus.SetLevel(logrus.DebugLevel)
 			}
 			return nil
 		},
@@ -56,7 +51,10 @@ func newRootCmd(args []string) *cobra.Command {
 
 	cmd.AddCommand(
 		newVersionCmd(),
+		newBuildCmd(),
 	)
+
+	cmd.SilenceUsage = true
 
 	f := cmd.PersistentFlags()
 	f.BoolVar(&offline, "offline", offline, "work offline, Overrides $SL_OFFLINE")
