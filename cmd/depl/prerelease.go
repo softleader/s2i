@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/softleader/depl/pkg/deployer"
 	"github.com/softleader/depl/pkg/github"
@@ -10,7 +11,7 @@ import (
 	"os"
 )
 
-type buildCmd struct {
+type preReleaseCmd struct {
 	force           bool
 	sourceOwner     string
 	sourceRepo      string
@@ -20,20 +21,22 @@ type buildCmd struct {
 	configLabel     string
 	image           string
 	tag             string
+	stage           string
 	deployer        string
 	auth            *jib.Auth
 	dockerServiceID string
 }
 
-func newBuildCmd() *cobra.Command {
-	c := &buildCmd{
+func newPreReleaseCmd() *cobra.Command {
+	c := &preReleaseCmd{
 		auth: &jib.Auth{},
 	}
 	cmd := &cobra.Command{
-		Use:   "build",
-		Short: "build source to image and publish to deployer",
-		Long:  "build source to image and publish to deployer",
-		Args:  cobra.ExactArgs(1),
+		Use:     "prerelease",
+		Aliases: []string{"pre"},
+		Short:   "draft a pre-release version",
+		Long:    "Draft a pre-release SoftLeader docker swarm ecosystem",
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c.tag = args[0]
 			if pwd, err := os.Getwd(); err == nil {
@@ -58,6 +61,7 @@ func newBuildCmd() *cobra.Command {
 	f.StringVar(&c.configServer, "config-server", "http://192.168.1.88:8887", "config server to run the test")
 	f.StringVar(&c.configLabel, "config-label", "", "the label of config server to run the test, e.g. sqlServer")
 	f.StringVar(&c.image, "image", c.image, "name of image to build")
+	f.StringVar(&c.stage, "stage", "0", "designating development stage to build, e.g. 0 for alpha, 1 for beta, 2 for release candidate")
 	f.StringVar(&c.deployer, "deployer", "http://softleader.com.tw:5678", "deployer to deploy")
 	f.StringVar(&c.auth.Username, "jib-username", "dev", "username of docker registry for jib to build")
 	f.StringVar(&c.auth.Password, "jib-password", "sleader", "password of docker registry for jib to build")
@@ -65,20 +69,21 @@ func newBuildCmd() *cobra.Command {
 	return cmd
 }
 
-func (c *buildCmd) run() error {
+func (c *preReleaseCmd) run() error {
 	if !c.skipTests {
 		if err := test.Run(logrus.StandardLogger(), c.configServer, c.configLabel); err != nil {
 			return err
 		}
 	}
-	if err := jib.Build(logrus.StandardLogger(), c.image, c.tag, c.auth); err != nil {
+	tagName := fmt.Sprintf("%s+%s", c.tag, c.stage)
+	if err := jib.Build(logrus.StandardLogger(), c.image, tagName, c.auth); err != nil {
 		return err
 	}
-	if err := github.CreateRelease(logrus.StandardLogger(), token, c.sourceOwner, c.sourceRepo, c.sourceBranch, c.tag, c.force); err != nil {
+	if err := github.CreatePrerelease(logrus.StandardLogger(), token, c.sourceOwner, c.sourceRepo, c.sourceBranch, tagName, c.force); err != nil {
 		return err
 	}
 	if c.dockerServiceID != "" {
-		if err := deployer.UpdateService(logrus.StandardLogger(), "depl", metadata.String(), c.deployer, c.dockerServiceID, c.image, c.tag); err != nil {
+		if err := deployer.UpdateService(logrus.StandardLogger(), "depl", metadata.String(), c.deployer, c.dockerServiceID, c.image, tagName); err != nil {
 			return err
 		}
 	}

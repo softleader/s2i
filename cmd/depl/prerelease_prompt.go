@@ -5,7 +5,7 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-func (c *buildCmd) prompt() error {
+func (c *preReleaseCmd) prompt() error {
 	if err := ask("Name of image to build", c.image, &c.image); err != nil {
 		return err
 	}
@@ -49,6 +49,10 @@ func (c *buildCmd) prompt() error {
 	}
 
 	if err := ask("Name of branch to create to create tag", c.sourceBranch, &c.sourceBranch); err != nil {
+		return err
+	}
+
+	if err := ask("Designating development stage to build, e.g. 0 for alpha, 1 for beta, 2 for release candidate", c.stage, &c.stage); err != nil {
 		return err
 	}
 

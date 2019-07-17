@@ -24,19 +24,20 @@ func newTokenClient(ctx context.Context, token string) (*github.Client, error) {
 	return github.NewClient(tc), nil
 }
 
-// CreateRelease 建立 github 的 release
-func CreateRelease(log *logrus.Logger, token, owner, repo, branch, tag string, force bool) error {
+// CreatePrerelease 建立 github 的 pre-release
+func CreatePrerelease(log *logrus.Logger, token, owner, repo, branch, tag string, force bool) error {
 	ctx := context.Background()
 	client, err := newTokenClient(ctx, token)
 	if err != nil {
 		return err
 	}
-
+	pre := true
 	r := &github.RepositoryRelease{
 		TagName:         &tag,
 		TargetCommitish: &branch,
+		Prerelease:      &pre,
 	}
-	log.Debugf("creating release %s for %s/%s branch: %s", tag, owner, repo, branch)
+	log.Debugf("creating pre-release %s for %s/%s branch: %s", tag, owner, repo, branch)
 	release, _, err := client.Repositories.CreateRelease(ctx, owner, repo, r)
 	if err != nil {
 		githubErr, ok := err.(*github.ErrorResponse)
@@ -49,13 +50,13 @@ func CreateRelease(log *logrus.Logger, token, owner, repo, branch, tag string, f
 				return err
 			}
 		}
-		log.Debugf("creating release %s again for %s/%s branch: %s", tag, owner, repo, branch)
+		log.Debugf("creating pre-release %s again for %s/%s branch: %s", tag, owner, repo, branch)
 		if release, _, err = client.Repositories.CreateRelease(ctx, owner, repo, r); err != nil {
 			return err
 		}
 	}
 
-	log.Printf("Successfully created %s release", release.GetTagName())
+	log.Printf("Successfully created %s pre-release", release.GetTagName())
 	return nil
 }
 
