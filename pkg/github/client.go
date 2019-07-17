@@ -24,6 +24,26 @@ func newTokenClient(ctx context.Context, token string) (*github.Client, error) {
 	return github.NewClient(tc), nil
 }
 
+// CreateRelease 建立 github 的 release
+func CreateRelease(log *logrus.Logger, token, owner, repo, branch, tag string) error {
+	ctx := context.Background()
+	client, err := newTokenClient(ctx, token)
+	if err != nil {
+		return err
+	}
+	r := &github.RepositoryRelease{
+		TagName:         &tag,
+		TargetCommitish: &branch,
+	}
+	log.Debugf("creating release %s for %s/%s branch: %s", tag, owner, repo, branch)
+	release, _, err := client.Repositories.CreateRelease(ctx, owner, repo, r)
+	if err != nil {
+		return err
+	}
+	log.Printf("Successfully created %s release", release.GetTagName())
+	return nil
+}
+
 // CreatePrerelease 建立 github 的 pre-release
 func CreatePrerelease(log *logrus.Logger, token, owner, repo, branch, tag string, force bool) error {
 	ctx := context.Background()

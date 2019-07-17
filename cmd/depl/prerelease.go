@@ -11,79 +11,115 @@ import (
 	"os"
 )
 
-type preReleaseCmd struct {
-	force           bool
-	sourceOwner     string
-	sourceRepo      string
-	sourceBranch    string
-	skipTests       bool
-	configServer    string
-	configLabel     string
-	image           string
-	tag             string
-	stage           string
-	deployer        string
-	auth            *jib.Auth
-	dockerServiceID string
+const pluginPrereleaseDesc = `Draft a pre-release to SoftLeader docker swarm ecosystem
+
+建立 pre-release 版本, pre 為此 command 的縮寫, 傳入 '--interactive' 可以開啟互動式指令:
+
+	$ depl prerelease TAG
+	$ depl pre TAG -i
+
+pre-release 版本的 tag 必須帶著 stage, 預設的 stage 預設為 '0', 基本上是建議:
+
+	- 0 for alpha
+	- 1 for beta
+	- 2 for release candidate
+
+你可以透過 '--stage' 調整, stage 可以給任意字串: 
+
+	$ depl pre TAG --stage do.not.use
+
+depl 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調整:
+
+	- git 資訊: '--sourceOwner', '--sourceRepo' 及 '--sourceBranch'
+	- jib 資訊: '--jib-auth-username' 及 '--jib-auth-password'
+
+傳入 '--docker-service-id' 即可在最後自動的更新 SoftLeader Deployer (http://softleader.com.tw:5678) 上的服務
+當然你必須先到 Deployer 上查出該 service id:
+
+	$ depl pre TAG --docker-service-id 0989olwerft
+
+可以使用 '--help' 查看所有選項及其詳細說明
+
+	$ depl pre -h
+`
+
+type prereleaseCmd struct {
+	Force           bool
+	Interactive     bool
+	SourceOwner     string
+	SourceRepo      string
+	SourceBranch    string
+	SkipTests       bool
+	ConfigServer    string
+	ConfigLabel     string
+	Image           string
+	Tag             string
+	Stage           string
+	Deployer        string
+	Auth            *jib.Auth
+	DockerServiceID string
 }
 
-func newPreReleaseCmd() *cobra.Command {
-	c := &preReleaseCmd{
-		auth: &jib.Auth{},
+func newPrereleaseCmd() *cobra.Command {
+	c := &prereleaseCmd{
+		Auth: &jib.Auth{},
 	}
 	cmd := &cobra.Command{
-		Use:     "prerelease",
+		Use:     "prerelease <TAG>",
 		Aliases: []string{"pre"},
 		Short:   "draft a pre-release version",
-		Long:    "Draft a pre-release SoftLeader docker swarm ecosystem",
+		Long:    pluginPrereleaseDesc,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			c.tag = args[0]
+			c.Tag = args[0]
 			if pwd, err := os.Getwd(); err == nil {
-				c.sourceOwner, c.sourceRepo = github.Remote(logrus.StandardLogger(), pwd)
-				c.image = c.sourceRepo
-				c.sourceBranch = github.Head(logrus.StandardLogger(), pwd)
-				c.auth = jib.GetAuth(logrus.StandardLogger(), pwd)
+				c.SourceOwner, c.SourceRepo = github.Remote(logrus.StandardLogger(), pwd)
+				c.Image = c.SourceRepo
+				c.SourceBranch = github.Head(logrus.StandardLogger(), pwd)
+				c.Auth = jib.GetAuth(logrus.StandardLogger(), pwd)
 			}
-			if err := c.prompt(); err != nil {
-				return err
+			if c.Interactive {
+				if err := c.prompt(); err != nil {
+					return err
+				}
 			}
 			return c.run()
 		},
 	}
 
 	f := cmd.Flags()
-	f.BoolVarP(&c.force, "force", "f", false, "force to delete the tag if it already exists")
-	f.BoolVar(&c.skipTests, "skip-tests", false, "skip tests when building image")
-	f.StringVar(&c.sourceOwner, "source-owner", c.sourceOwner, "name of the owner (user or org) of the repo to create tag")
-	f.StringVar(&c.sourceRepo, "source-repo", c.sourceRepo, "name of repo to create to create tag")
-	f.StringVar(&c.sourceBranch, "source-branch", c.sourceBranch, "name of branch to create to create tag")
-	f.StringVar(&c.configServer, "config-server", "http://192.168.1.88:8887", "config server to run the test")
-	f.StringVar(&c.configLabel, "config-label", "", "the label of config server to run the test, e.g. sqlServer")
-	f.StringVar(&c.image, "image", c.image, "name of image to build")
-	f.StringVar(&c.stage, "stage", "0", "designating development stage to build, e.g. 0 for alpha, 1 for beta, 2 for release candidate")
-	f.StringVar(&c.deployer, "deployer", "http://softleader.com.tw:5678", "deployer to deploy")
-	f.StringVar(&c.auth.Username, "jib-username", "dev", "username of docker registry for jib to build")
-	f.StringVar(&c.auth.Password, "jib-password", "sleader", "password of docker registry for jib to build")
-	f.StringVar(&c.dockerServiceID, "docker-service-id", "", "docker service id to update image")
+	f.BoolVarP(&c.Force, "force", "f", false, "force to delete the tag if it already exists")
+	f.BoolVarP(&c.Interactive, "interactive", "i", false, "interactive prompt")
+	f.BoolVar(&c.SkipTests, "skip-tests", false, "skip tests when building image")
+	f.StringVar(&c.SourceOwner, "source-owner", c.SourceOwner, "name of the owner (user or org) of the repo to create tag")
+	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to create to create tag")
+	f.StringVar(&c.SourceBranch, "source-branch", c.SourceBranch, "name of branch to create to create tag")
+	f.StringVar(&c.ConfigServer, "config-server", "http://192.168.1.88:8887", "config server to run the test")
+	f.StringVar(&c.ConfigLabel, "config-label", "", "the label of config server to run the test, e.g. sqlServer")
+	f.StringVar(&c.Image, "image", c.Image, "name of image to build")
+	f.StringVar(&c.Stage, "stage", "0", "designating development stage to build, e.g. 0 for alpha, 1 for beta, 2 for release candidate")
+	f.StringVar(&c.Deployer, "deployer", "http://softleader.com.tw:5678", "deployer to deploy")
+	f.StringVar(&c.Auth.Username, "jib-auth-username", "dev", "username of docker registry for jib to build")
+	f.StringVar(&c.Auth.Password, "jib-auth-password", "sleader", "password of docker registry for jib to build")
+	f.StringVar(&c.DockerServiceID, "docker-service-id", "", "docker service id to update image")
 	return cmd
 }
 
-func (c *preReleaseCmd) run() error {
-	if !c.skipTests {
-		if err := test.Run(logrus.StandardLogger(), c.configServer, c.configLabel); err != nil {
+func (c *prereleaseCmd) run() error {
+	if !c.SkipTests {
+		if err := test.Run(logrus.StandardLogger(), c.ConfigServer, c.ConfigLabel); err != nil {
 			return err
 		}
 	}
-	tagName := fmt.Sprintf("%s+%s", c.tag, c.stage)
-	if err := jib.Build(logrus.StandardLogger(), c.image, tagName, c.auth); err != nil {
+	tagName := fmt.Sprintf("%s-%s", c.Tag, c.Stage)
+	if err := jib.Build(logrus.StandardLogger(), c.Image, tagName, c.Auth); err != nil {
 		return err
 	}
-	if err := github.CreatePrerelease(logrus.StandardLogger(), token, c.sourceOwner, c.sourceRepo, c.sourceBranch, tagName, c.force); err != nil {
+	if err := github.CreatePrerelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.SourceBranch, tagName, c.Force); err != nil {
 		return err
 	}
-	if c.dockerServiceID != "" {
-		if err := deployer.UpdateService(logrus.StandardLogger(), "depl", metadata.String(), c.deployer, c.dockerServiceID, c.image, tagName); err != nil {
+	if c.DockerServiceID != "" {
+		if err := deployer.UpdateService(logrus.StandardLogger(), "depl", metadata.String(), c.Deployer, c.DockerServiceID, c.Image, tagName); err != nil {
 			return err
 		}
 	}

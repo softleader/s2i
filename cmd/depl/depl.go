@@ -51,7 +51,8 @@ func newRootCmd(args []string) *cobra.Command {
 
 	cmd.AddCommand(
 		newVersionCmd(),
-		newPreReleaseCmd(),
+		newReleaseCmd(),
+		newPrereleaseCmd(),
 	)
 
 	cmd.SilenceUsage = true
