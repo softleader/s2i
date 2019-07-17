@@ -40,7 +40,7 @@ func (jc *JobClient) Build(jobName string) error {
 
 // BuildWithParameters build 傳入的 job 及 parameters
 func (jc *JobClient) BuildWithParameters(jobName string, params map[string]string) error {
-	jc.c.log.Printf("enqueuing job %q to build queue", jobName)
+	jc.c.log.Printf("enqueuing job %q to build queue with params: %s", jobName, params)
 
 	r, err := jc.c.csrf()
 	if err != nil {
