@@ -40,7 +40,7 @@ func CreateRelease(log *logrus.Logger, token, owner, repo, branch, tag string) e
 	if err != nil {
 		return err
 	}
-	log.Printf("Successfully created %s release", release.GetTagName())
+	log.Printf("Successfully created release: %s", release.GetHTMLURL())
 	return nil
 }
 
@@ -76,7 +76,7 @@ func CreatePrerelease(log *logrus.Logger, token, owner, repo, branch, tag string
 		}
 	}
 
-	log.Printf("Successfully created %s pre-release", release.GetTagName())
+	log.Printf("Successfully created pre-release: %s", release.GetHTMLURL())
 	return nil
 }
 
