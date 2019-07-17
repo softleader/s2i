@@ -94,7 +94,7 @@ func newPrereleaseCmd() *cobra.Command {
 	f.StringVar(&c.SourceOwner, "source-owner", c.SourceOwner, "name of the owner (user or org) of the repo to create tag")
 	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to create to create tag")
 	f.StringVar(&c.SourceBranch, "source-branch", c.SourceBranch, "name of branch to create to create tag")
-	f.StringVar(&c.ConfigServer, "config-server", "http://192.168.1.88:8887", "config server to run the test")
+	f.StringVar(&c.ConfigServer, "config-server", "http://softleader.com.tw:8887", "config server to run the test")
 	f.StringVar(&c.ConfigLabel, "config-label", "", "the label of config server to run the test, e.g. sqlServer")
 	f.StringVar(&c.Image, "image", c.Image, "name of image to build")
 	f.StringVar(&c.Stage, "stage", "0", "designating development stage to build, e.g. 0 for alpha, 1 for beta, 2 for release candidate")
