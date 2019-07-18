@@ -21,7 +21,6 @@ $ slctl plugin install github.com/softleader/depl
 
 請執行 `slctl depl pre -h` 取得更多說明
 
-
 ### release
 
 ![](./docs/command-release.svg)
