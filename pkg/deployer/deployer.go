@@ -35,6 +35,11 @@ func FilterServiceByApp(log *logrus.Logger, agent, agentVersion, deployer, app s
 	resty.SetDebug(log.IsLevelEnabled(logrus.DebugLevel))
 	params := make(map[string]string)
 	params["label"] = fmt.Sprintf("app=%s", app)
+	return FilterService(log, agent, agentVersion, deployer, params)
+}
+
+// FilterService 依照條件查詢 service
+func FilterService(log *logrus.Logger, agent, agentVersion, deployer string, params map[string]string) ([]DockerService, error) {
 	resp, err := resty.R().
 		SetQueryParams(params).
 		SetHeader("User-Agent", fmt.Sprintf("%s/%s", agent, agentVersion)).
