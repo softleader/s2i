@@ -99,8 +99,8 @@ func newPrereleaseCmd() *cobra.Command {
 	f.StringVar(&c.Image, "image", c.Image, "name of image to build")
 	f.StringVar(&c.Stage, "stage", "0", "designating development stage to build, e.g. 0 for alpha, 1 for beta, 2 for release candidate")
 	f.StringVar(&c.Deployer, "deployer", "http://softleader.com.tw:5678", "deployer to deploy")
-	f.StringVar(&c.Auth.Username, "jib-auth-username", "dev", "username of docker registry for jib to build")
-	f.StringVar(&c.Auth.Password, "jib-auth-password", "sleader", "password of docker registry for jib to build")
+	f.StringVar(&c.Auth.Username, "jib-auth-username", "", "username of docker registry for jib to build")
+	f.StringVar(&c.Auth.Password, "jib-auth-password", "", "password of docker registry for jib to build")
 	f.StringVar(&c.DockerServiceID, "docker-service-id", "", "docker service id to update image")
 	return cmd
 }
