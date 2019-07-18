@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/manifoldco/promptui"
 	"github.com/sirupsen/logrus"
 	"github.com/softleader/depl/pkg/deployer"
@@ -18,7 +17,7 @@ func prereleaseQuestions(c *prereleaseCmd) error {
 		return err
 	}
 
-	services, err := deployer.FilterServiceByImage(logrus.StandardLogger(), "depl", metadata.String(), c.Deployer, fmt.Sprintf("hub.softleader.com.tw/%s:%s", c.Image, c.Tag))
+	services, err := deployer.FilterServiceByApp(logrus.StandardLogger(), "depl", metadata.String(), c.Deployer, c.Image)
 	if len(services) == 0 || err != nil {
 		if err := prompt.Ask("Docker service id to update image (leave blank if you don't need to update)", c.DockerServiceID, &c.DockerServiceID); err != nil {
 			return err

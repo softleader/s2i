@@ -30,11 +30,11 @@ type DockerService struct {
 	Replicas string
 }
 
-// FilterServiceByImage 依照 image 查詢 docker service
-func FilterServiceByImage(log *logrus.Logger, agent, agentVersion, deployer, image string) ([]DockerService, error) {
+// FilterServiceByApp 依照 label=app 查詢 docker service
+func FilterServiceByApp(log *logrus.Logger, agent, agentVersion, deployer, app string) ([]DockerService, error) {
 	resty.SetDebug(log.IsLevelEnabled(logrus.DebugLevel))
 	params := make(map[string]string)
-	params["label"] = fmt.Sprintf("com.docker.stack.image=%s", image)
+	params["label"] = fmt.Sprintf("app=%s", app)
 	resp, err := resty.R().
 		SetQueryParams(params).
 		SetHeader("User-Agent", fmt.Sprintf("%s/%s", agent, agentVersion)).
