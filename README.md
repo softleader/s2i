@@ -21,6 +21,8 @@ $ slctl plugin install github.com/softleader/depl
 
 請執行 `slctl depl pre -h` 取得更多說明
 
+> 此 command 僅適用於已經依照[此篇](https://github.com/softleader/softleader-microservice-wiki/wiki/Using-JIB-to-build-image)步驟調整成 jib 包版的專案
+
 ### release
 
 ![](./docs/command-release.svg)
