@@ -79,7 +79,7 @@ func newPrereleaseCmd() *cobra.Command {
 				c.Auth = jib.GetAuth(logrus.StandardLogger(), pwd)
 			}
 			if c.Interactive {
-				if err := c.prompt(); err != nil {
+				if err := prereleaseQuestions(c); err != nil {
 					return err
 				}
 			}

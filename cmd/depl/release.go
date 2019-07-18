@@ -49,7 +49,7 @@ func newReleaseCmd() *cobra.Command {
 				c.SourceBranch = github.Head(logrus.StandardLogger(), pwd)
 			}
 			if c.Interactive {
-				if err := c.prompt(); err != nil {
+				if err := releaseQuestions(c); err != nil {
 					return err
 				}
 			}
