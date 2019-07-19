@@ -30,7 +30,7 @@ func (i *SoftleaderHubImage) CheckValid() error {
 	}
 	_, err := semver.NewVersion(i.Tag)
 	if err != nil {
-		return fmt.Errorf("tag is not a valid SemVer2: %s", err)
+		return fmt.Errorf("requires valid SemVer2 tag: %s", err)
 	}
 	return nil
 }
