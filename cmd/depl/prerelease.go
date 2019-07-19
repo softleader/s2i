@@ -36,7 +36,7 @@ depl 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調�
 傳入 '--docker-service-id' 即可在最後自動的更新 SoftLeader Deployer (http://softleader.com.tw:5678) 上的服務
 當然你必須先到 Deployer 上查出該 service id:
 
-	$ depl pre TAG --docker-service-id 0989olwerft
+	$ depl pre TAG --docker-service-id DOCKER_SERVICE_ID
 
 可以使用 '--help' 查看所有選項及其詳細說明
 
