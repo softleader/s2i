@@ -2,7 +2,7 @@
 
 The [slctl](https://github.com/softleader/slctl) plugin to deploy application to SoftLeader docker swarm ecosystem
 
-> 這是一個非常針對性, 只設計給符合松凌科技開發環境 docker swarm 使用的 command
+> 這是一個非常針對性, 只設計給符合松凌科技開發環境 docker swarm 使用的 command, 請注意: 將來可能會因為全面轉 k8s 而廢棄使用
 
 ## Install
 
