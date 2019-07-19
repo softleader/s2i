@@ -6,7 +6,7 @@ import (
 )
 
 func releaseQuestions(c *releaseCmd) error {
-	if err := prompt.AskRequired("Name of image to build", c.Image, &c.Image); err != nil {
+	if err := prompt.AskRequired("Name of image to build", c.Image.Name, &c.Image.Name); err != nil {
 		return err
 	}
 

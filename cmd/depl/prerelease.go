@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/softleader/depl/pkg/deployer"
+	"github.com/softleader/depl/pkg/docker"
 	"github.com/softleader/depl/pkg/github"
 	"github.com/softleader/depl/pkg/jib"
 	"github.com/softleader/depl/pkg/test"
@@ -52,8 +53,7 @@ type prereleaseCmd struct {
 	SkipTests       bool
 	ConfigServer    string
 	ConfigLabel     string
-	Image           string
-	Tag             string
+	Image           *docker.SoftleaderHubImage
 	Stage           string
 	Deployer        string
 	Auth            *jib.Auth
@@ -62,7 +62,8 @@ type prereleaseCmd struct {
 
 func newPrereleaseCmd() *cobra.Command {
 	c := &prereleaseCmd{
-		Auth: &jib.Auth{},
+		Auth:  &jib.Auth{},
+		Image: &docker.SoftleaderHubImage{},
 	}
 	cmd := &cobra.Command{
 		Use:     "prerelease <TAG>",
@@ -71,10 +72,10 @@ func newPrereleaseCmd() *cobra.Command {
 		Long:    pluginPrereleaseDesc,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			c.Tag = args[0]
+			c.Image.Tag = args[0]
 			if pwd, err := os.Getwd(); err == nil {
 				c.SourceOwner, c.SourceRepo = github.Remote(logrus.StandardLogger(), pwd)
-				c.Image = c.SourceRepo
+				c.Image.Name = c.SourceRepo
 				c.SourceBranch = github.Head(logrus.StandardLogger(), pwd)
 				c.Auth = jib.GetAuth(logrus.StandardLogger(), pwd)
 			}
@@ -82,6 +83,9 @@ func newPrereleaseCmd() *cobra.Command {
 				if err := prereleaseQuestions(c); err != nil {
 					return err
 				}
+			}
+			if err := c.Image.CheckValid(); err != nil {
+				return err
 			}
 			return c.run()
 		},
@@ -96,7 +100,7 @@ func newPrereleaseCmd() *cobra.Command {
 	f.StringVar(&c.SourceBranch, "source-branch", c.SourceBranch, "name of branch to create to create tag")
 	f.StringVar(&c.ConfigServer, "config-server", "http://softleader.com.tw:8887", "config server to run the test")
 	f.StringVar(&c.ConfigLabel, "config-label", "", "the label of config server to run the test, e.g. sqlServer")
-	f.StringVar(&c.Image, "image", c.Image, "name of image to build")
+	f.StringVar(&c.Image.Name, "image", c.Image.Name, "name of image to build")
 	f.StringVar(&c.Stage, "stage", "0", "designating development stage to build, e.g. 0 for alpha, 1 for beta, 2 for release candidate")
 	f.StringVar(&c.Deployer, "deployer", "http://softleader.com.tw:5678", "deployer to deploy")
 	f.StringVar(&c.Auth.Username, "jib-auth-username", "", "username of docker registry for jib to build")
@@ -111,15 +115,29 @@ func (c *prereleaseCmd) run() error {
 			return err
 		}
 	}
-	tagName := fmt.Sprintf("%s-%s", c.Tag, c.Stage)
-	if err := jib.Build(logrus.StandardLogger(), c.Image, tagName, c.Auth); err != nil {
-		return err
+	c.Image.Tag = fmt.Sprintf("%s-%s", c.Image.Tag, c.Stage)
+	if c.Auth.IsValid() {
+		if err := jib.Build(logrus.StandardLogger(), c.Image, c.Auth); err != nil {
+			return err
+		}
+	} else {
+		// 當沒提供 docker registry auth 資訊時, 我們就 build 到 local docker daemon 再推
+		// 因為使用者可能已經在 local 的 docker daemon 登入過 hub.softleader.com.tw
+		if err := jib.DockerBuild(logrus.StandardLogger(), c.Image); err != nil {
+			return err
+		}
+		if err := docker.Push(logrus.StandardLogger(), c.Image); err != nil {
+			return err
+		}
+		if err := docker.Rmi(logrus.StandardLogger(), c.Image); err != nil {
+			return err
+		}
 	}
-	if err := github.CreatePrerelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.SourceBranch, tagName, c.Force); err != nil {
+	if err := github.CreatePrerelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.SourceBranch, c.Image.Tag, c.Force); err != nil {
 		return err
 	}
 	if c.DockerServiceID != "" {
-		if err := deployer.UpdateService(logrus.StandardLogger(), "depl", metadata.String(), c.Deployer, c.DockerServiceID, c.Image, tagName); err != nil {
+		if err := deployer.UpdateService(logrus.StandardLogger(), "depl", metadata.String(), c.Deployer, c.DockerServiceID, c.Image); err != nil {
 			return err
 		}
 	}

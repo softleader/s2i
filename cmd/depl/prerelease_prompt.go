@@ -9,7 +9,7 @@ import (
 )
 
 func prereleaseQuestions(c *prereleaseCmd) error {
-	if err := prompt.AskRequired("Name of image to build", c.Image, &c.Image); err != nil {
+	if err := prompt.AskRequired("Name of image to build", c.Image.Name, &c.Image.Name); err != nil {
 		return err
 	}
 
@@ -17,7 +17,7 @@ func prereleaseQuestions(c *prereleaseCmd) error {
 		return err
 	}
 
-	services, err := deployer.FilterServiceByApp(logrus.StandardLogger(), "depl", metadata.String(), c.Deployer, c.Image)
+	services, err := deployer.FilterServiceByApp(logrus.StandardLogger(), "depl", metadata.String(), c.Deployer, c.Image.Name)
 	if len(services) == 0 || err != nil {
 		if err := prompt.Ask("Docker service id to update image (leave blank if you don't need to update)", c.DockerServiceID, &c.DockerServiceID); err != nil {
 			return err

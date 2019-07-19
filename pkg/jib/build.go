@@ -3,6 +3,7 @@ package jib
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"github.com/softleader/depl/pkg/docker"
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
@@ -15,9 +16,9 @@ var (
 	pr = regexp.MustCompile(`-Djib.to.auth.password=(\w+)`)
 )
 
-// DockerBuild from jib
-func DockerBuild(log *logrus.Logger, image, tag string) error {
-	cmd := exec.Command("mvn", "compile", "jib:dockerBuild", "-Dbuild.image="+image, "-Dbuild.tag="+tag)
+// DockerBuild to Docker daemon by jib
+func DockerBuild(log *logrus.Logger, image *docker.SoftleaderHubImage) error {
+	cmd := exec.Command("mvn", "compile", "jib:dockerBuild", "-Dbuild.image="+image.Name, "-Dbuild.tag="+image.Tag)
 	if log.IsLevelEnabled(logrus.DebugLevel) {
 		log.Out.Write([]byte(fmt.Sprintln(strings.Join(cmd.Args, " "))))
 	}
@@ -35,9 +36,14 @@ type Auth struct {
 	Password string
 }
 
-// Build from jib
-func Build(log *logrus.Logger, image, tag string, auth *Auth) error {
-	cmd := exec.Command("mvn", "compile", "jib:build", "-Djib.to.auth.username="+auth.Username, "-Djib.to.auth.password="+auth.Password, "-Dbuild.image="+image, "-Dbuild.tag="+tag)
+// IsValid 返回 auth 資訊是否有效
+func (a *Auth) IsValid() bool {
+	return strings.TrimSpace(a.Username) != "" && strings.TrimSpace(a.Password) != ""
+}
+
+// Build image by jib
+func Build(log *logrus.Logger, image *docker.SoftleaderHubImage, auth *Auth) error {
+	cmd := exec.Command("mvn", "compile", "jib:build", "-Djib.to.auth.username="+auth.Username, "-Djib.to.auth.password="+auth.Password, "-Dbuild.image="+image.Name, "-Dbuild.tag="+image.Tag)
 	if log.IsLevelEnabled(logrus.DebugLevel) {
 		log.Out.Write([]byte(fmt.Sprintln(strings.Join(cmd.Args, " "))))
 	}

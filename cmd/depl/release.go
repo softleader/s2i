@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/softleader/depl/pkg/docker"
 	"github.com/softleader/depl/pkg/github"
 	"github.com/softleader/depl/pkg/jenkins"
 	"github.com/spf13/cobra"
@@ -29,29 +30,33 @@ type releaseCmd struct {
 	SourceOwner  string
 	SourceRepo   string
 	SourceBranch string
-	Image        string
-	Tag          string
+	Image        *docker.SoftleaderHubImage
 	Jenkins      string
 }
 
 func newReleaseCmd() *cobra.Command {
-	c := &releaseCmd{}
+	c := &releaseCmd{
+		Image: &docker.SoftleaderHubImage{},
+	}
 	cmd := &cobra.Command{
 		Use:   "release <TAG>",
 		Short: "draft a release version",
 		Long:  pluginReleaseDesc,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			c.Tag = args[0]
+			c.Image.Tag = args[0]
 			if pwd, err := os.Getwd(); err == nil {
 				c.SourceOwner, c.SourceRepo = github.Remote(logrus.StandardLogger(), pwd)
-				c.Image = c.SourceRepo
+				c.Image.Name = c.SourceRepo
 				c.SourceBranch = github.Head(logrus.StandardLogger(), pwd)
 			}
 			if c.Interactive {
 				if err := releaseQuestions(c); err != nil {
 					return err
 				}
+			}
+			if err := c.Image.CheckValid(); err != nil {
+				return err
 			}
 			return c.run()
 		},
@@ -62,13 +67,13 @@ func newReleaseCmd() *cobra.Command {
 	f.StringVar(&c.SourceOwner, "source-owner", c.SourceOwner, "name of the owner (user or org) of the repo to create tag")
 	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to create to create tag")
 	f.StringVar(&c.SourceBranch, "source-branch", c.SourceBranch, "name of branch to create to create tag")
-	f.StringVar(&c.Image, "image", c.Image, "name of image to build")
+	f.StringVar(&c.Image.Name, "image", c.Image.Name, "name of image to build")
 	f.StringVar(&c.Jenkins, "jenkins", "https://jenkins.softleader.com.tw", "jenkins to run the pipeline")
 	return cmd
 }
 
 func (c *releaseCmd) run() error {
-	if err := github.CreateRelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.SourceBranch, c.Tag); err != nil {
+	if err := github.CreateRelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.SourceBranch, c.Image.Tag); err != nil {
 		return err
 	}
 
@@ -76,7 +81,7 @@ func (c *releaseCmd) run() error {
 		SetVerbose(verbose).
 		SetLogger(logrus.StandardLogger())
 	params := make(map[string]string)
-	params["tag"] = c.Tag
+	params["tag"] = c.Image.Tag
 	if err := jenkins.Job().BuildWithParameters(c.SourceRepo, params); err != nil {
 		return err
 	}
