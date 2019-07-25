@@ -2,7 +2,7 @@
 
 The [slctl](https://github.com/softleader/slctl) plugin to build source to image to SoftLeader docker swarm ecosystem
 
-> 這是一個非常針對性, 只設計給符合松凌科技開發環境 docker swarm 使用的 command, 請注意: 將來可能會因為全面轉 k8s 而廢棄使用
+> s2i (source to image) 是一個非常針對性, 只設計給符合松凌科技開發環境 docker swarm 使用的 command, 請注意: 將來可能會因為全面轉 k8s 而廢棄使用
 
 ## Install
 
