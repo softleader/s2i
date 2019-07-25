@@ -1,14 +1,14 @@
 HAS_GOLINT := $(shell command -v golint;)
 SL_HOME ?= $(shell slctl home)
-SL_PLUGIN_DIR ?= $(SL_HOME)/plugins/depl/
+SL_PLUGIN_DIR ?= $(SL_HOME)/plugins/s2i/
 METADATA := metadata.yaml
 VERSION :=
 COMMIT :=
 DIST := $(CURDIR)/_dist
 BUILD := $(CURDIR)/_build
 LDFLAGS := "-X main.version=${VERSION} -X main.commit=${COMMIT}"
-BINARY := depl
-MAIN := ./cmd/depl
+BINARY := s2i
+MAIN := ./cmd/s2i
 
 .PHONY: install
 install: bootstrap test build
@@ -60,7 +60,7 @@ endif
 .PHONY: bootstrap
 bootstrap:
 ifeq (,$(wildcard ./go.mod))
-	go mod init depl
+	go mod init s2i
 endif
 	go mod download
 

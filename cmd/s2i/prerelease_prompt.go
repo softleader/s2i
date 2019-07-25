@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/manifoldco/promptui"
 	"github.com/sirupsen/logrus"
-	"github.com/softleader/depl/pkg/deployer"
-	"github.com/softleader/depl/pkg/prompt"
+	"github.com/softleader/s2i/pkg/deployer"
+	"github.com/softleader/s2i/pkg/prompt"
 	"strings"
 )
 
@@ -13,11 +13,15 @@ func prereleaseQuestions(c *prereleaseCmd) error {
 		return err
 	}
 
+	if err := prompt.AskRequired("Tag of image to build", c.Image.Tag, &c.Image.Tag); err != nil {
+		return err
+	}
+
 	if err := prompt.AskYesNo("Force to delete the tag if it already exists?", "y", &c.Force); err != nil {
 		return err
 	}
 
-	services, err := deployer.FilterServiceByApp(logrus.StandardLogger(), "depl", metadata.String(), c.Deployer, c.Image.Name)
+	services, err := deployer.FilterServiceByApp(logrus.StandardLogger(), "s2i", metadata.String(), c.Deployer, c.Image.Name)
 	if len(services) == 0 || err != nil {
 		if err := prompt.Ask("Docker service id to update image (leave blank if you don't need to update)", c.DockerServiceID, &c.DockerServiceID); err != nil {
 			return err

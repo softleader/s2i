@@ -1,23 +1,25 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"github.com/softleader/depl/pkg/deployer"
-	"github.com/softleader/depl/pkg/docker"
-	"github.com/softleader/depl/pkg/github"
-	"github.com/softleader/depl/pkg/jib"
-	"github.com/softleader/depl/pkg/test"
+	"github.com/softleader/s2i/pkg/deployer"
+	"github.com/softleader/s2i/pkg/docker"
+	"github.com/softleader/s2i/pkg/github"
+	"github.com/softleader/s2i/pkg/jib"
+	"github.com/softleader/s2i/pkg/test"
 	"github.com/spf13/cobra"
 	"os"
 )
 
 const pluginPrereleaseDesc = `Draft a pre-release to SoftLeader docker swarm ecosystem
 
-建立 pre-release 版本, pre 為此 command 的縮寫, 傳入 '--interactive' 可以開啟互動式指令:
+建立 pre-release 版本, pre 為此 command 的縮寫, 傳入 '--interactive' 可以開啟互動式指令
+在互動模式下, TAG 若不傳入就會自動的找出 Latest Release 並增加一個 Patch 版本做為預設的 Tag:
 
-	$ depl prerelease TAG
-	$ depl pre TAG -i
+	$ s2i prerelease TAG
+	$ s2i pre TAG -i
 
 pre-release 版本的 tag 必須帶著 stage, 預設的 stage 預設為 '0', 基本上是建議:
 
@@ -27,21 +29,21 @@ pre-release 版本的 tag 必須帶著 stage, 預設的 stage 預設為 '0', 基
 
 你可以透過 '--stage' 調整, stage 可以給任意字串: 
 
-	$ depl pre TAG --stage do.not.use
+	$ s2i pre TAG --stage do.not.use
 
-depl 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調整:
+s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調整:
 
 	- git 資訊: '--sourceOwner', '--sourceRepo' 及 '--sourceBranch'
 	- jib 資訊: '--jib-auth-username' 及 '--jib-auth-password'
 
-傳入 '--docker-service-id' 即可在最後自動的更新 SoftLeader Deployer (http://softleader.com.tw:5678) 上的服務
-當然你必須先到 Deployer 上查出該 service id:
+傳入 '--docker-service-id' 即可在最後自動的更新 SoftLeader s2ioyer (http://softleader.com.tw:5678) 上的服務
+當然你必須先到 s2ioyer 上查出該 service id:
 
-	$ depl pre TAG --docker-service-id DOCKER_SERVICE_ID
+	$ s2i pre TAG --docker-service-id DOCKER_SERVICE_ID
 
 可以使用 '--help' 查看所有選項及其詳細說明
 
-	$ depl pre -h
+	$ s2i pre -h
 `
 
 type prereleaseCmd struct {
@@ -70,9 +72,11 @@ func newPrereleaseCmd() *cobra.Command {
 		Aliases: []string{"pre"},
 		Short:   "draft a pre-release version",
 		Long:    pluginPrereleaseDesc,
-		Args:    cobra.ExactArgs(1),
+		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			c.Image.Tag = args[0]
+			if !c.Interactive && len(args) < 1 {
+				return errors.New(`accepts 1 arg(s), received 0`)
+			}
 			if pwd, err := os.Getwd(); err == nil {
 				c.SourceOwner, c.SourceRepo = github.Remote(logrus.StandardLogger(), pwd)
 				c.Image.Name = c.SourceRepo
@@ -80,6 +84,11 @@ func newPrereleaseCmd() *cobra.Command {
 				c.Auth = jib.GetAuth(logrus.StandardLogger(), pwd)
 			}
 			if c.Interactive {
+				if len(args) < 1 {
+					c.Image.Tag = github.FindNextReleaseVersion(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo)
+				} else {
+					c.Image.Tag = args[0]
+				}
 				if err := prereleaseQuestions(c); err != nil {
 					return err
 				}
@@ -137,7 +146,7 @@ func (c *prereleaseCmd) run() error {
 		return err
 	}
 	if c.DockerServiceID != "" {
-		if err := deployer.UpdateService(logrus.StandardLogger(), "depl", metadata.String(), c.Deployer, c.DockerServiceID, c.Image); err != nil {
+		if err := deployer.UpdateService(logrus.StandardLogger(), "s2i", metadata.String(), c.Deployer, c.DockerServiceID, c.Image); err != nil {
 			return err
 		}
 	}

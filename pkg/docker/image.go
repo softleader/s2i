@@ -28,7 +28,9 @@ func (i *SoftleaderHubImage) CheckValid() error {
 	if strings.TrimSpace(i.Tag) == "" {
 		return fmt.Errorf("tag is required")
 	}
-	_, err := semver.NewVersion(i.Tag)
+	// GitHub 建議我們用 v 開頭, 但 v 開頭不符合 semver, 所以檢查時固定拿掉
+	v := strings.TrimPrefix(i.Tag, "v")
+	_, err := semver.NewVersion(v)
 	if err != nil {
 		return fmt.Errorf("requires valid SemVer2 tag: %s", err)
 	}

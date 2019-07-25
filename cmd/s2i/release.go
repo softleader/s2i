@@ -1,17 +1,19 @@
 package main
 
 import (
+	"errors"
 	"github.com/sirupsen/logrus"
-	"github.com/softleader/depl/pkg/docker"
-	"github.com/softleader/depl/pkg/github"
-	"github.com/softleader/depl/pkg/jenkins"
+	"github.com/softleader/s2i/pkg/docker"
+	"github.com/softleader/s2i/pkg/github"
+	"github.com/softleader/s2i/pkg/jenkins"
 	"github.com/spf13/cobra"
 	"os"
 )
 
 const pluginReleaseDesc = `Draft a release to SoftLeader docker swarm ecosystem
 
-建立 release 版本, 傳入 '--interactive' 可以開啟互動式指令:
+建立 release 版本, 傳入 '--interactive' 可以開啟互動式指令
+在互動模式下, TAG 若不傳入就會自動的找出 Latest Release 並增加一個 Patch 版本做為預設的 Tag:
 
 	$ depl release TAG
 	$ depl release TAG -i
@@ -42,15 +44,22 @@ func newReleaseCmd() *cobra.Command {
 		Use:   "release <TAG>",
 		Short: "draft a release version",
 		Long:  pluginReleaseDesc,
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			c.Image.Tag = args[0]
+			if !c.Interactive && len(args) < 1 {
+				return errors.New(`accepts 1 arg(s), received 0`)
+			}
 			if pwd, err := os.Getwd(); err == nil {
 				c.SourceOwner, c.SourceRepo = github.Remote(logrus.StandardLogger(), pwd)
 				c.Image.Name = c.SourceRepo
 				c.SourceBranch = github.Head(logrus.StandardLogger(), pwd)
 			}
 			if c.Interactive {
+				if len(args) < 1 {
+					c.Image.Tag = github.FindNextReleaseVersion(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo)
+				} else {
+					c.Image.Tag = args[0]
+				}
 				if err := releaseQuestions(c); err != nil {
 					return err
 				}

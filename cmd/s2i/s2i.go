@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"github.com/softleader/depl/pkg/formatter"
-	"github.com/softleader/depl/pkg/release"
+	"github.com/softleader/s2i/pkg/formatter"
+	"github.com/softleader/s2i/pkg/release"
 	"github.com/spf13/cobra"
 	"os"
 	"strconv"
@@ -32,9 +32,9 @@ func main() {
 
 func newRootCmd(args []string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "depl",
-		Short: "deploy application to SoftLeader docker swarm ecosystem",
-		Long:  "Depl is a command line tool for deploy application to SoftLeader docker swarm ecosystem",
+		Use:   "s2i",
+		Short: "build source to image to SoftLeader docker swarm ecosystem",
+		Long:  "s2i is a command line tool for build source to image to SoftLeader docker swarm ecosystem",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// remove the check if the plugin can run in offline mode
 			if offline {

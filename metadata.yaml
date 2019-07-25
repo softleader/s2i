@@ -1,9 +1,9 @@
-name: depl
+name: s2i
 version: 0.1.0
-usage: deploy application to SoftLeader docker swarm ecosystem
-description: Depl is a command line tool for deploy application to SoftLeader docker swarm ecosystem
+usage: build source to image to SoftLeader docker swarm ecosystem
+description: s2i is a command line tool for build source to image to SoftLeader docker swarm ecosystem
 exec:
-  command: $SL_PLUGIN_DIR/depl
+  command: $SL_PLUGIN_DIR/s2i
 ignoreglobalflags: false
 github:
   scopes:

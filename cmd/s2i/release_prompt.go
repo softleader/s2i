@@ -2,11 +2,15 @@ package main
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/softleader/depl/pkg/prompt"
+	"github.com/softleader/s2i/pkg/prompt"
 )
 
 func releaseQuestions(c *releaseCmd) error {
 	if err := prompt.AskRequired("Name of image to build", c.Image.Name, &c.Image.Name); err != nil {
+		return err
+	}
+
+	if err := prompt.AskRequired("Tag of image to build", c.Image.Tag, &c.Image.Tag); err != nil {
 		return err
 	}
 

@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"fmt"
+	"github.com/coreos/go-semver/semver"
 	"github.com/google/go-github/v21/github"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
@@ -22,6 +23,39 @@ func newTokenClient(ctx context.Context, token string) (*github.Client, error) {
 	)
 	tc := oauth2.NewClient(ctx, ts)
 	return github.NewClient(tc), nil
+}
+
+func FindNextReleaseVersion(log *logrus.Logger, token, owner, repo string) string {
+	if token == "" || owner == "" || repo == "" {
+		return ""
+	}
+	ctx := context.Background()
+	client, err := newTokenClient(ctx, token)
+	if err != nil {
+		log.Debugln(err)
+		return ""
+	}
+	log.Debugf("getting latest release of %s/%s", owner, repo)
+	rr, _, err := client.Repositories.GetLatestRelease(ctx, owner, repo)
+	if err != nil {
+		log.Debugln(err)
+		return ""
+	}
+	tag := rr.GetTagName()
+	log.Debugf("found latest release: %s", tag)
+	version := strings.TrimPrefix(tag, "v")
+	semver, err := semver.NewVersion(version)
+	if err != nil {
+		log.Debugln(err)
+		return ""
+	}
+	semver.Patch += 1
+	next := semver.String()
+	if strings.HasPrefix(tag, "v") {
+		next = "v" + next
+	}
+	return next
+
 }
 
 // CreateRelease 建立 github 的 release

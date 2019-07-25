@@ -3,7 +3,7 @@ package jib
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"github.com/softleader/depl/pkg/docker"
+	"github.com/softleader/s2i/pkg/docker"
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
