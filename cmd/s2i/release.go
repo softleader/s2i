@@ -13,18 +13,18 @@ import (
 const pluginReleaseDesc = `Draft a release to SoftLeader docker swarm ecosystem
 
 建立 release 版本, 傳入 '--interactive' 可以開啟互動式指令
-在互動模式下, TAG 若不傳入就會自動的找出 Latest Release 並增加一個 Patch 版本做為預設的 Tag:
+在互動模式下, tag 若不傳入就會自動的到 GitHub 找出 latest release 並增加一個 patch 版號做為問答預設的 tag:
 
-	$ depl release TAG
-	$ depl release TAG -i
+	$ s2i release TAG
+	$ s2i release TAG -i
 
-depl 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調整:
+s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調整:
 
-	- git 資訊: '--sourceOwner', '--sourceRepo' 及 '--sourceBranch'
+	- git 資訊: '--source-owner', '--source-repo' 及 '--source-branch'
 
 可以使用 '--help' 查看所有選項及其詳細說明
 
-	$ depl release -h
+	$ s2i release -h
 `
 
 type releaseCmd struct {
@@ -56,7 +56,11 @@ func newReleaseCmd() *cobra.Command {
 			}
 			if c.Interactive {
 				if len(args) < 1 {
-					c.Image.Tag = github.FindNextReleaseVersion(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo)
+					var err error
+					c.Image.Tag, err = github.FindNextReleaseVersion(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo)
+					if err != nil {
+						logrus.Debugln(err)
+					}
 				} else {
 					c.Image.Tag = args[0]
 				}

@@ -25,36 +25,33 @@ func newTokenClient(ctx context.Context, token string) (*github.Client, error) {
 	return github.NewClient(tc), nil
 }
 
-func FindNextReleaseVersion(log *logrus.Logger, token, owner, repo string) string {
+func FindNextReleaseVersion(log *logrus.Logger, token, owner, repo string) (string, error) {
 	if token == "" || owner == "" || repo == "" {
-		return ""
+		return "", nil
 	}
 	ctx := context.Background()
 	client, err := newTokenClient(ctx, token)
 	if err != nil {
-		log.Debugln(err)
-		return ""
+		return "", err
 	}
-	log.Debugf("getting latest release of %s/%s", owner, repo)
+	log.Debugf("fetching latest release of %s/%s", owner, repo)
 	rr, _, err := client.Repositories.GetLatestRelease(ctx, owner, repo)
 	if err != nil {
-		log.Debugln(err)
-		return ""
+		return "", err
 	}
 	tag := rr.GetTagName()
-	log.Debugf("found latest release: %s", tag)
+	log.Debugf("found %s drafted by %s published at %s", tag, rr.GetAuthor().GetLogin(), rr.GetPublishedAt())
 	version := strings.TrimPrefix(tag, "v")
 	semver, err := semver.NewVersion(version)
 	if err != nil {
-		log.Debugln(err)
-		return ""
+		return "", err
 	}
 	semver.Patch += 1
 	next := semver.String()
 	if strings.HasPrefix(tag, "v") {
 		next = "v" + next
 	}
-	return next
+	return next, nil
 
 }
 
