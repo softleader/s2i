@@ -19,15 +19,15 @@ const pluginPrereleaseDesc = `Draft a pre-release to SoftLeader docker swarm eco
 在互動模式下, tag 若不傳入就會自動的到 GitHub 找出 latest release 並增加一個 patch 版號做為問答預設的 tag:
 
 	$ s2i prerelease TAG
-	$ s2i pre TAG -i
+	$ s2i pre -i
 
-pre-release 必須指定 stage, 預設的 stage 預設為 '0', 基本上是建議:
+pre-release 必須指定 stage, 預設為 '0', 基本上是建議:
 
 	- 0 for alpha
 	- 1 for beta
 	- 2 for release candidate
 
-你可以透過 '--stage' 調整, stage 可以給任意字串: 
+你可以透過 '--stage' 調整, 可以傳入任意字串: 
 
 	$ s2i pre TAG --stage do.not.use
 
@@ -37,7 +37,7 @@ s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調�
 	- jib 資訊: '--jib-auth-username' 及 '--jib-auth-password'
 
 傳入 '--docker-service-id' 即可在最後自動的更新 SoftLeader Deployer (http://softleader.com.tw:5678) 上的服務
-當然你必須先到 Deployer 上查出該 service id:
+當然你必須先到 Deployer 上查出該 service id, 或是開啟互動式模式來協助你選到 service id:
 
 	$ s2i pre TAG --docker-service-id DOCKER_SERVICE_ID
 
