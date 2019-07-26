@@ -12,11 +12,11 @@ import (
 
 const pluginReleaseDesc = `Draft a release to SoftLeader docker swarm ecosystem
 
-建立 release 版本, 傳入 '--interactive' 可以開啟互動式指令
+建立 release 版本, 傳入 '--interactive' 可以開啟互動模式
 在互動模式下, tag 若不傳入就會自動的到 GitHub 找出 latest release 並增加一個 patch 版號做為問答預設的 tag:
 
 	$ s2i release TAG
-	$ s2i release TAG -i
+	$ s2i release -i
 
 s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調整:
 
