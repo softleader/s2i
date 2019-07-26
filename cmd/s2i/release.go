@@ -78,8 +78,8 @@ func newReleaseCmd() *cobra.Command {
 	f := cmd.Flags()
 	f.BoolVarP(&c.Interactive, "interactive", "i", false, "interactive prompt")
 	f.StringVar(&c.SourceOwner, "source-owner", c.SourceOwner, "name of the owner (user or org) of the repo to create tag")
-	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to create to create tag")
-	f.StringVar(&c.SourceBranch, "source-branch", c.SourceBranch, "name of branch to create to create tag")
+	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to create tag")
+	f.StringVar(&c.SourceBranch, "source-branch", c.SourceBranch, "name of branch to create tag")
 	f.StringVar(&c.Image.Name, "image", c.Image.Name, "name of image to build")
 	f.StringVar(&c.Jenkins, "jenkins", "https://jenkins.softleader.com.tw", "jenkins to run the pipeline")
 	return cmd

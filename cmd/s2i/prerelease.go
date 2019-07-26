@@ -109,16 +109,16 @@ func newPrereleaseCmd() *cobra.Command {
 	f.BoolVarP(&c.Interactive, "interactive", "i", false, "interactive prompt")
 	f.BoolVar(&c.SkipTests, "skip-tests", false, "skip tests when building image")
 	f.StringVar(&c.SourceOwner, "source-owner", c.SourceOwner, "name of the owner (user or org) of the repo to create tag")
-	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to create to create tag")
-	f.StringVar(&c.SourceBranch, "source-branch", c.SourceBranch, "name of branch to create to create tag")
+	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to create tag")
+	f.StringVar(&c.SourceBranch, "source-branch", c.SourceBranch, "name of branch to create tag")
 	f.StringVar(&c.ConfigServer, "config-server", "http://softleader.com.tw:8887", "config server to run the test")
 	f.StringVar(&c.ConfigLabel, "config-label", "", "the label of config server to run the test, e.g. sqlServer")
 	f.StringVar(&c.Image.Name, "image", c.Image.Name, "name of image to build")
 	f.StringVar(&c.Stage, "stage", "0", "designating development stage to build, e.g. 0 for alpha, 1 for beta, 2 for release candidate")
 	f.StringVar(&c.Deployer, "deployer", "http://softleader.com.tw:5678", "deployer to deploy")
-	f.StringVar(&c.Auth.Username, "jib-auth-username", "", "username of docker registry for jib to build")
-	f.StringVar(&c.Auth.Password, "jib-auth-password", "", "password of docker registry for jib to build")
-	f.StringVar(&c.DockerServiceID, "docker-service-id", "", "docker service id to update image")
+	f.StringVar(&c.Auth.Username, "jib-auth-username", "", "username of docker registry for jib")
+	f.StringVar(&c.Auth.Password, "jib-auth-password", "", "password of docker registry for jib")
+	f.StringVar(&c.DockerServiceID, "docker-service-id", "", "docker service id to update")
 	return cmd
 }
 
