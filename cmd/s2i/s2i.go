@@ -34,7 +34,7 @@ func newRootCmd(args []string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "s2i",
 		Short: "build source to image to SoftLeader docker swarm ecosystem",
-		Long:  "s2i is a command line tool for build source to image to SoftLeader docker swarm ecosystem",
+		Long:  "s2i is a command line tool to build source to image to SoftLeader docker swarm ecosystem",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// remove the check if the plugin can run in offline mode
 			if offline {

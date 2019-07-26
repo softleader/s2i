@@ -13,8 +13,8 @@ func newVersionCmd() *cobra.Command {
 	c := &versionCmd{}
 	cmd := &cobra.Command{
 		Use:   "version",
-		Short: "print depl version",
-		Long:  "print depl version",
+		Short: "print s2i version",
+		Long:  "print s2i version",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.run()
