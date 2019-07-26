@@ -77,6 +77,9 @@ func newPrereleaseCmd() *cobra.Command {
 			if !c.Interactive && len(args) < 1 {
 				return errors.New(`accepts 1 arg(s), received 0`)
 			}
+			if len(args) > 0 {
+				c.Image.Tag = args[0]
+			}
 			if pwd, err := os.Getwd(); err == nil {
 				c.SourceOwner, c.SourceRepo = github.Remote(logrus.StandardLogger(), pwd)
 				c.Image.Name = c.SourceRepo
@@ -84,14 +87,12 @@ func newPrereleaseCmd() *cobra.Command {
 				c.Auth = jib.GetAuth(logrus.StandardLogger(), pwd)
 			}
 			if c.Interactive {
-				if len(args) < 1 {
+				if c.Image.Tag == "" {
 					var err error
 					c.Image.Tag, err = github.FindNextReleaseVersion(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo)
 					if err != nil {
 						logrus.Debugln(err)
 					}
-				} else {
-					c.Image.Tag = args[0]
 				}
 				if err := prereleaseQuestions(c); err != nil {
 					return err
