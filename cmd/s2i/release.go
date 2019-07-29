@@ -22,6 +22,12 @@ s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調�
 
 	- git 資訊: '--source-owner', '--source-repo' 及 '--source-branch'
 
+傳入 '--service-id' 即可一併將要更新的 Service ID 傳給 Jenkins Pipeline
+當然你必須先到 SoftLeader Deployer (http://softleader.com.tw:5678) 上查出要更新的 Service ID
+或是開啟互動模式來協助你選到 Service ID:
+
+	$ s2i release TAG --service-id SERVICE_ID
+
 可以使用 '--help' 查看所有選項及其詳細說明
 
 	$ s2i release -h
@@ -34,6 +40,8 @@ type releaseCmd struct {
 	SourceBranch string
 	Image        *docker.SoftleaderHubImage
 	Jenkins      string
+	Deployer     string
+	ServiceID    string
 }
 
 func newReleaseCmd() *cobra.Command {
@@ -83,6 +91,8 @@ func newReleaseCmd() *cobra.Command {
 	f.StringVar(&c.SourceBranch, "source-branch", c.SourceBranch, "name of branch to create tag")
 	f.StringVar(&c.Image.Name, "image", c.Image.Name, "name of image to build")
 	f.StringVar(&c.Jenkins, "jenkins", "https://jenkins.softleader.com.tw", "jenkins to run the pipeline")
+	f.StringVar(&c.Deployer, "deployer", "http://softleader.com.tw:5678", "deployer to deploy")
+	f.StringVar(&c.ServiceID, "service-id", "", "docker swarm service id to update")
 	return cmd
 }
 
@@ -96,6 +106,9 @@ func (c *releaseCmd) run() error {
 		SetLogger(logrus.StandardLogger())
 	params := make(map[string]string)
 	params["tag"] = c.Image.Tag
+	if c.ServiceID != "" {
+		params["serviceID"] = c.ServiceID
+	}
 	if err := jenkins.Job().BuildWithParameters(c.SourceRepo, params); err != nil {
 		return err
 	}

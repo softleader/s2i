@@ -23,7 +23,7 @@ func prereleaseQuestions(c *prereleaseCmd) error {
 
 	services, err := deployer.FilterServiceByApp(logrus.StandardLogger(), "s2i", metadata.String(), c.Deployer, c.Image.Name)
 	if len(services) == 0 || err != nil {
-		if err := prompt.Ask("Docker service id to update image (leave blank if you don't need to update)", c.DockerServiceID, &c.DockerServiceID); err != nil {
+		if err := prompt.Ask("Service id to update image (leave blank if you don't need to update)", c.ServiceID, &c.ServiceID); err != nil {
 			return err
 		}
 	} else {
@@ -49,7 +49,7 @@ func prereleaseQuestions(c *prereleaseCmd) error {
 		if err != nil {
 			return err
 		}
-		c.DockerServiceID = services[i].ID
+		c.ServiceID = services[i].ID
 	}
 
 	ok, err := prompt.Confirm(logrus.StandardLogger(), c)

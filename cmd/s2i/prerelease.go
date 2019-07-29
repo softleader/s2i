@@ -36,10 +36,11 @@ s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調�
 	- git 資訊: '--source-owner', '--source-repo' 及 '--source-branch'
 	- jib 資訊: '--jib-auth-username' 及 '--jib-auth-password'
 
-傳入 '--docker-service-id' 即可在最後自動的更新 SoftLeader Deployer (http://softleader.com.tw:5678) 上的服務
-當然你必須先到 Deployer 上查出該 service id, 或是開啟互動模式來協助你選到 service id:
+傳入 '--service-id' 即可在最後自動的更新 SoftLeader Deployer 上的服務
+當然你必須先到 SoftLeader Deployer (http://softleader.com.tw:5678) 上查出要更新的 Service ID
+或是開啟互動模式來協助你選到 Service ID:
 
-	$ s2i pre TAG --docker-service-id DOCKER_SERVICE_ID
+	$ s2i pre TAG --service-id SERVICE_ID
 
 可以使用 '--help' 查看所有選項及其詳細說明
 
@@ -47,19 +48,19 @@ s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調�
 `
 
 type prereleaseCmd struct {
-	Force           bool
-	Interactive     bool
-	SourceOwner     string
-	SourceRepo      string
-	SourceBranch    string
-	SkipTests       bool
-	ConfigServer    string
-	ConfigLabel     string
-	Image           *docker.SoftleaderHubImage
-	Stage           string
-	Deployer        string
-	Auth            *jib.Auth
-	DockerServiceID string
+	Force        bool
+	Interactive  bool
+	SourceOwner  string
+	SourceRepo   string
+	SourceBranch string
+	SkipTests    bool
+	ConfigServer string
+	ConfigLabel  string
+	Image        *docker.SoftleaderHubImage
+	Stage        string
+	Deployer     string
+	Auth         *jib.Auth
+	ServiceID    string
 }
 
 func newPrereleaseCmd() *cobra.Command {
@@ -119,7 +120,7 @@ func newPrereleaseCmd() *cobra.Command {
 	f.StringVar(&c.Deployer, "deployer", "http://softleader.com.tw:5678", "deployer to deploy")
 	f.StringVar(&c.Auth.Username, "jib-auth-username", "", "username of docker registry for jib")
 	f.StringVar(&c.Auth.Password, "jib-auth-password", "", "password of docker registry for jib")
-	f.StringVar(&c.DockerServiceID, "docker-service-id", "", "docker service id to update")
+	f.StringVar(&c.ServiceID, "service-id", "", "docker swarm service id to update")
 	return cmd
 }
 
@@ -150,8 +151,8 @@ func (c *prereleaseCmd) run() error {
 	if err := github.CreatePrerelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.SourceBranch, c.Image.Tag, c.Force); err != nil {
 		return err
 	}
-	if c.DockerServiceID != "" {
-		if err := deployer.UpdateService(logrus.StandardLogger(), "s2i", metadata.String(), c.Deployer, c.DockerServiceID, c.Image); err != nil {
+	if c.ServiceID != "" {
+		if err := deployer.UpdateService(logrus.StandardLogger(), "s2i", metadata.String(), c.Deployer, c.ServiceID, c.Image); err != nil {
 			return err
 		}
 	}
