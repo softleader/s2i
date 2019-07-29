@@ -31,4 +31,4 @@ $ slctl plugin install github.com/softleader/s2i
 
 請執行 `slctl s2i release -h` 取得更多說明
 
-> 2-3 的 update service 需要專案的 Jenkinsfile 配合做些調整, 請參考 [Jenkins Hook to Update Service on Deployer](https://github.com/softleader/softleader-microservice-wiki/wiki/Jenkins-Hook-to-Update-Service-on-Deployer)
+> 2-3. 的 update service 需要專案的 Jenkinsfile 配合做些調整, 請參考 [Jenkins Hook to Update Service on Deployer](https://github.com/softleader/softleader-microservice-wiki/wiki/Jenkins-Hook-to-Update-Service-on-Deployer)
