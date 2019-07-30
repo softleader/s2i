@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	r = regexp.MustCompile(`url = (.+).git`)
+	r = regexp.MustCompile(`url = (.+)`)
 )
 
 func newTokenClient(ctx context.Context, token string) (*github.Client, error) {
@@ -148,8 +148,9 @@ func Remote(log *logrus.Logger, pwd string) (owner, repo string) {
 		return
 	}
 	remote := groups[1]
-	remote = strings.ReplaceAll(remote, "git@github.com:", "")
-	remote = strings.ReplaceAll(remote, "https://github.com/", "")
+	remote = strings.TrimPrefix(remote, "git@github.com:")
+	remote = strings.TrimPrefix(remote, "https://github.com/")
+	remote = strings.TrimSuffix(remote, ".git")
 	log.Debugf("used remote url: %s", remote)
 	spited := strings.Split(remote, "/")
 	owner = spited[0]
