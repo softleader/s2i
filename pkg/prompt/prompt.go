@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/manifoldco/promptui"
 	"github.com/sirupsen/logrus"
+	"github.com/softleader/s2i/pkg/deployer"
 	"gopkg.in/yaml.v2"
 	"strings"
 )
@@ -63,4 +64,43 @@ func AskYesNo(question, defaultValue string, ref *bool) (err error) {
 	yesNo, err = p.Run()
 	*ref = strings.ToLower(yesNo) == "y" || strings.ToLower(yesNo) == "yes"
 	return
+}
+
+// AskServiceID 問 docker swarm serviceID 問題
+func AskServiceID(log *logrus.Logger, agent, agentVersion, deployerURL, app, defaultValue string, ref *string) (err error) {
+	question := "Service id to update image (leave blank if you don't need to update)"
+
+	if defaultValue != "" {
+		return Ask(question, defaultValue, ref)
+	}
+
+	services, err := deployer.FilterServiceByApp(log, agent, agentVersion, deployerURL, app)
+	if len(services) == 0 || err != nil { // 在 deployer 上找不到任何已部署的服務, 或連線發生問題
+		return Ask(question, defaultValue, ref)
+	}
+
+	services = append([]deployer.DockerService{{
+		Name: "I don't need to update",
+	}}, services...)
+	prompt := promptui.Select{
+		Label: "Select docker service to update",
+		Items: services,
+		Templates: &promptui.SelectTemplates{
+			Active:   promptui.IconSelect + " {{ .Name }}\t{{ .Ports }}",
+			Inactive: "  {{ .Name }}\t{{ .Ports }}",
+			Selected: promptui.IconGood + " {{ .Name }}\t{{ .Ports }}",
+		},
+		Searcher: func(input string, index int) bool {
+			channel := services[index]
+			name := strings.Replace(strings.ToLower(channel.Name), " ", "", -1)
+			input = strings.Replace(strings.ToLower(input), " ", "", -1)
+			return strings.Contains(name, input)
+		},
+	}
+	i, _, err := prompt.Run()
+	if err != nil {
+		return err
+	}
+	*ref = services[i].ID
+	return nil
 }
