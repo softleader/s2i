@@ -32,3 +32,23 @@ $ slctl plugin install github.com/softleader/s2i
 請執行 `slctl s2i release -h` 取得更多說明
 
 > 2-3. 的 update service 需要專案的 Jenkinsfile 配合做些調整, 請參考 [Jenkins Hook to Update Service on Deployer](https://github.com/softleader/softleader-microservice-wiki/wiki/Jenkins-Hook-to-Update-Service-on-Deployer)
+
+## Example
+
+Tag 跟 serviceID 都希望自動找到: 
+
+```sh
+slctl s2i pre/release -i
+```
+
+已有 serviceID `xxxxx`, 但 tag 希望自動找到:
+
+```sh
+slctl s2i pre/release --service-id xxxxx -i
+```
+
+已有 tag `v1.2.3` , 但 serviceID 希望協助找到:
+
+```sh
+slctl s2i pre/release v1.2.3 -i`
+```
