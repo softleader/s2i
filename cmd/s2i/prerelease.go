@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/softleader/s2i/pkg/deployer"
 	"github.com/softleader/s2i/pkg/docker"
@@ -130,7 +129,7 @@ func (c *prereleaseCmd) run() error {
 			return err
 		}
 	}
-	c.Image.Tag = fmt.Sprintf("%s-%s", c.Image.Tag, c.Stage)
+	c.Image.SetPreRelease(c.Stage)
 	if c.Auth.IsValid() {
 		if err := jib.Build(logrus.StandardLogger(), c.Image, c.Auth); err != nil {
 			return err

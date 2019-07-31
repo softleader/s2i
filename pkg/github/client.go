@@ -42,12 +42,12 @@ func FindNextReleaseVersion(log *logrus.Logger, token, owner, repo string) (stri
 	tag := rr.GetTagName()
 	log.Debugf("found %s drafted by %s published at %s", tag, rr.GetAuthor().GetLogin(), rr.GetPublishedAt())
 	version := strings.TrimPrefix(tag, "v")
-	semver, err := semver.NewVersion(version)
+	sv, err := semver.NewVersion(version)
 	if err != nil {
 		return "", err
 	}
-	semver.Patch += 1
-	next := semver.String()
+	sv.BumpPatch()
+	next := sv.String()
 	if strings.HasPrefix(tag, "v") {
 		next = "v" + next
 	}

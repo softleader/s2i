@@ -9,14 +9,20 @@ import (
 	"strings"
 )
 
+const (
+	width = 70
+)
+
 // Confirm 確認問題
 func Confirm(log *logrus.Logger, c interface{}) (ok bool, err error) {
+	log.Printf("%s", strings.Repeat("-", width))
 	b, err := yaml.Marshal(c)
 	if err != nil {
 		log.Printf("%#v", c)
 	} else {
 		log.Println(string(b))
 	}
+	log.Printf("%s", strings.Repeat("-", width))
 	err = AskYesNo("Is this OK?", "y", &ok)
 	return
 }

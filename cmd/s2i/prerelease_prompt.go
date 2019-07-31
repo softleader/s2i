@@ -30,19 +30,19 @@ func prereleaseQuestions(c *prereleaseCmd) error {
 		return nil
 	}
 
-	if err := prompt.AskRequired("Name of branch to create to create tag", c.SourceBranch, &c.SourceBranch); err != nil {
+	if err := prompt.AskRequired("Name of the owner (user or org) to create tag", c.SourceOwner, &c.SourceOwner); err != nil {
+		return err
+	}
+
+	if err := prompt.AskRequired("Name of repo to create tag", c.SourceRepo, &c.SourceRepo); err != nil {
+		return err
+	}
+
+	if err := prompt.AskRequired("Name of branch to create tag", c.SourceBranch, &c.SourceBranch); err != nil {
 		return err
 	}
 
 	if err := prompt.AskRequired("Designating development stage to build, e.g. 0 for alpha, 1 for beta, 2 for release candidate", c.Stage, &c.Stage); err != nil {
-		return err
-	}
-
-	if err := prompt.AskRequired("Name of the owner (user or org) of the repo to create tag", c.SourceOwner, &c.SourceOwner); err != nil {
-		return err
-	}
-
-	if err := prompt.AskRequired("Name of repo to create to create tag", c.SourceRepo, &c.SourceRepo); err != nil {
 		return err
 	}
 

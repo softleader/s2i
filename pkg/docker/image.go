@@ -15,6 +15,21 @@ type SoftleaderHubImage struct {
 	Name, Tag string
 }
 
+// SetPreRelease 設定 tag 的 pre-release 版號
+func (i *SoftleaderHubImage) SetPreRelease(preRelease string) {
+	version := strings.TrimPrefix(i.Tag, "v")
+	sv, err := semver.NewVersion(version)
+	if err != nil {
+		return
+	}
+	sv.PreRelease = semver.PreRelease(preRelease)
+	pr := sv.String()
+	if strings.HasPrefix(i.Tag, "v") {
+		pr = "v" + pr
+	}
+	i.Tag = pr
+}
+
 // String 返回適用於 hub.softleader.com.tw 的 image 全名
 func (i *SoftleaderHubImage) String() string {
 	return fmt.Sprintf("%s/%s:%s", softleaderHub, i.Name, i.Tag)
