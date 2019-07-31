@@ -50,5 +50,5 @@ slctl s2i pre/release --service-id xxxxx -i
 已有 tag `v1.2.3` , 但 serviceID 希望協助找到:
 
 ```sh
-slctl s2i pre/release v1.2.3 -i`
+slctl s2i pre/release v1.2.3 -i
 ```
