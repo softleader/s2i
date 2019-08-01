@@ -1,5 +1,5 @@
 name: s2i
-version: 0.3.0
+version: 0.3.2
 usage: build source to image to SoftLeader docker swarm ecosystem
 description: s2i is a command line tool to build source to image to SoftLeader docker swarm ecosystem
 exec:
