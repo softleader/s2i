@@ -47,19 +47,20 @@ s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調�
 `
 
 type prereleaseCmd struct {
-	Force        bool
-	Interactive  bool
-	SourceOwner  string
-	SourceRepo   string
-	SourceBranch string
-	SkipTests    bool
-	ConfigServer string
-	ConfigLabel  string
-	Image        *docker.SoftleaderHubImage
-	Stage        string
-	Deployer     string
-	Auth         *jib.Auth
-	ServiceID    string
+	Force           bool
+	Interactive     bool
+	SourceOwner     string
+	SourceRepo      string
+	SourceBranch    string
+	SkipTests       bool
+	UpdateSnapshots bool
+	ConfigServer    string
+	ConfigLabel     string
+	Image           *docker.SoftleaderHubImage
+	Stage           string
+	Deployer        string
+	Auth            *jib.Auth
+	ServiceID       string
 }
 
 func newPrereleaseCmd() *cobra.Command {
@@ -109,6 +110,7 @@ func newPrereleaseCmd() *cobra.Command {
 	f.BoolVarP(&c.Force, "force", "f", false, "force to delete the tag if it already exists")
 	f.BoolVarP(&c.Interactive, "interactive", "i", false, "interactive prompt")
 	f.BoolVar(&c.SkipTests, "skip-tests", false, "skip tests when building image")
+	f.BoolVarP(&c.UpdateSnapshots, "update-snapshots", "U", false, "force updated snapshots on remote repositories")
 	f.StringVar(&c.SourceOwner, "source-owner", c.SourceOwner, "name of the owner (user or org) of the repo to create tag")
 	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to create tag")
 	f.StringVar(&c.SourceBranch, "source-branch", c.SourceBranch, "name of branch to create tag")
@@ -125,19 +127,19 @@ func newPrereleaseCmd() *cobra.Command {
 
 func (c *prereleaseCmd) run() error {
 	if !c.SkipTests {
-		if err := test.Run(logrus.StandardLogger(), c.ConfigServer, c.ConfigLabel); err != nil {
+		if err := test.Run(logrus.StandardLogger(), c.ConfigServer, c.ConfigLabel, c.UpdateSnapshots); err != nil {
 			return err
 		}
 	}
 	c.Image.SetPreRelease(c.Stage)
 	if c.Auth.IsValid() {
-		if err := jib.Build(logrus.StandardLogger(), c.Image, c.Auth); err != nil {
+		if err := jib.Build(logrus.StandardLogger(), c.Image, c.Auth, c.UpdateSnapshots); err != nil {
 			return err
 		}
 	} else {
 		// 當沒提供 docker registry auth 資訊時, 我們就 build 到 local docker daemon 再推
 		// 因為使用者可能已經在 local 的 docker daemon 登入過 hub.softleader.com.tw
-		if err := jib.DockerBuild(logrus.StandardLogger(), c.Image); err != nil {
+		if err := jib.DockerBuild(logrus.StandardLogger(), c.Image, c.UpdateSnapshots); err != nil {
 			return err
 		}
 		if err := docker.Push(logrus.StandardLogger(), c.Image); err != nil {

@@ -17,8 +17,12 @@ var (
 )
 
 // DockerBuild to Docker daemon by jib
-func DockerBuild(log *logrus.Logger, image *docker.SoftleaderHubImage) error {
-	cmd := exec.Command("mvn", "compile", "jib:dockerBuild", "-Dbuild.image="+image.Name, "-Dbuild.tag="+image.Tag)
+func DockerBuild(log *logrus.Logger, image *docker.SoftleaderHubImage, updateSnapshots bool) error {
+	args := []string{"compile", "jib:dockerBuild", "-Dbuild.image=" + image.Name, "-Dbuild.tag=" + image.Tag}
+	if updateSnapshots {
+		args = append(args, "-U")
+	}
+	cmd := exec.Command("mvn", args...)
 	if log.IsLevelEnabled(logrus.DebugLevel) {
 		log.Out.Write([]byte(fmt.Sprintln(strings.Join(cmd.Args, " "))))
 	}
@@ -42,8 +46,12 @@ func (a *Auth) IsValid() bool {
 }
 
 // Build image by jib
-func Build(log *logrus.Logger, image *docker.SoftleaderHubImage, auth *Auth) error {
-	cmd := exec.Command("mvn", "compile", "jib:build", "-Djib.to.auth.username="+auth.Username, "-Djib.to.auth.password="+auth.Password, "-Dbuild.image="+image.Name, "-Dbuild.tag="+image.Tag)
+func Build(log *logrus.Logger, image *docker.SoftleaderHubImage, auth *Auth, updateSnapshots bool) error {
+	args := []string{"compile", "jib:build", "-Djib.to.auth.username=" + auth.Username, "-Djib.to.auth.password=" + auth.Password, "-Dbuild.image=" + image.Name, "-Dbuild.tag=" + image.Tag}
+	if updateSnapshots {
+		args = append(args, "-U")
+	}
+	cmd := exec.Command("mvn", args...)
 	if log.IsLevelEnabled(logrus.DebugLevel) {
 		log.Out.Write([]byte(fmt.Sprintln(strings.Join(cmd.Args, " "))))
 	}
