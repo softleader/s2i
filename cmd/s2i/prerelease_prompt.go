@@ -18,7 +18,7 @@ func prereleaseQuestions(c *prereleaseCmd) error {
 		return err
 	}
 
-	if err := prompt.AskYesNo("Force to updated snapshots on remote repositories?", "n", &c.UpdateSnapshots); err != nil {
+	if err := prompt.AskYesNo("Force to check for updated snapshots on remote repositories?", "n", &c.UpdateSnapshots); err != nil {
 		return err
 	}
 

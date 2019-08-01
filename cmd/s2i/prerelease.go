@@ -110,7 +110,7 @@ func newPrereleaseCmd() *cobra.Command {
 	f.BoolVarP(&c.Force, "force", "f", false, "force to delete the tag if it already exists")
 	f.BoolVarP(&c.Interactive, "interactive", "i", false, "interactive prompt")
 	f.BoolVar(&c.SkipTests, "skip-tests", false, "skip tests when building image")
-	f.BoolVarP(&c.UpdateSnapshots, "update-snapshots", "U", false, "force updated snapshots on remote repositories")
+	f.BoolVarP(&c.UpdateSnapshots, "update-snapshots", "U", false, "force to check for updated snapshots on remote repositories")
 	f.StringVar(&c.SourceOwner, "source-owner", c.SourceOwner, "name of the owner (user or org) of the repo to create tag")
 	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to create tag")
 	f.StringVar(&c.SourceBranch, "source-branch", c.SourceBranch, "name of branch to create tag")
