@@ -58,12 +58,16 @@ slctl s2i tag delete ^1. -r --dry-run
 slctl s2i tag delete .+ -r --source-owner me --source-repo my-repo
 ```
 
+> 請執行 `slctl s2i tag delete -h` 取得更多說明
+
 - `slctl s2i tag list <TAG..>` - 列出 tag 名稱, 發佈時間及發佈人員, 範例:
 
 ```sh
 # 在當前目錄的專案中, 以 regex 表示列出更多資訊
 slctl s2i tag list ^1. -r
 ```
+
+> 請執行 `slctl s2i tag list -h` 取得更多說明
 
 ## Example
 
