@@ -53,6 +53,34 @@ func AskRequired(question, defaultValue string, ref *string) (err error) {
 	return
 }
 
+// AskArrayRequired 問單一問題, 但可以回答多個, 必填
+func AskArrayRequired(question string, defaultValue []string, ref *[]string, sep string) (err error) {
+	p := promptui.Prompt{
+		Label:   question,
+		Default: strings.Join(defaultValue, sep),
+		Validate: func(s string) error {
+			if strings.TrimSpace(s) == "" {
+				return errors.New("required")
+			}
+			return nil
+		},
+	}
+	ans, err := p.Run()
+	if err != nil {
+		return err
+	}
+	*ref = strings.Split(ans, sep)
+	return
+}
+
+// AskYesNoBool 問 boolean 問題, 並且以 bool 做為 defaultValue
+func AskYesNoBool(question string, defaultValue bool, ref *bool) (err error) {
+	if defaultValue {
+		return AskYesNo(question, "y", ref)
+	}
+	return AskYesNo(question, "n", ref)
+}
+
 // AskYesNo 問 boolean 問題
 func AskYesNo(question, defaultValue string, ref *bool) (err error) {
 	var yesNo string

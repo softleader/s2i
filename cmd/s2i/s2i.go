@@ -53,6 +53,7 @@ func newRootCmd(args []string) *cobra.Command {
 		newVersionCmd(),
 		newReleaseCmd(),
 		newPrereleaseCmd(),
+		neTagCmd(),
 	)
 
 	cmd.SilenceUsage = true
