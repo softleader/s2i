@@ -57,7 +57,7 @@ func newTagDeleteCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "delete <TAG>",
 		Aliases: []string{"del", "rm"},
-		Short:   "delete github tag and its release",
+		Short:   "delete tag and its release on GitHub",
 		Long:    pluginTagDeleteDesc,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(c.SourceOwner) == 0 || len(c.SourceRepo) == 0 {

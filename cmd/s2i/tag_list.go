@@ -37,7 +37,7 @@ func newTagListCmd() *cobra.Command {
 	c := &tagListCmd{}
 	cmd := &cobra.Command{
 		Use:     "list <TAG...>",
-		Short:   "list github tag",
+		Short:   "list tags on GitHub",
 		Long:    pluginTagListDesc,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(c.SourceOwner) == 0 || len(c.SourceRepo) == 0 {
