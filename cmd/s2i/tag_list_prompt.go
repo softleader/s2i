@@ -14,14 +14,6 @@ func tagListQuestions(c *tagListCmd) error {
 		return err
 	}
 
-	ok, err := prompt.Confirm(logrus.StandardLogger(), c)
-	if err != nil {
-		return err
-	}
-	if ok {
-		return nil
-	}
-
 	if err := prompt.AskRequired("Name of the owner (user or org) to delete tag", c.SourceOwner, &c.SourceOwner); err != nil {
 		return err
 	}
@@ -30,7 +22,7 @@ func tagListQuestions(c *tagListCmd) error {
 		return err
 	}
 
-	ok, err = prompt.Confirm(logrus.StandardLogger(), c)
+	ok, err := prompt.Confirm(logrus.StandardLogger(), c)
 	if err != nil {
 		return err
 	}
