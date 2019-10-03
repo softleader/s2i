@@ -15,6 +15,7 @@ func neTagCmd() *cobra.Command {
 		Long:    pluginTagDesc,
 	}
 	cmd.AddCommand(
+		newTagListCmd(),
 		newTagDeleteCmd(),
 	)
 	return cmd
