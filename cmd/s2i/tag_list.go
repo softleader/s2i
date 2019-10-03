@@ -66,9 +66,9 @@ func newTagListCmd() *cobra.Command {
 
 	f := cmd.Flags()
 	f.BoolVarP(&c.Interactive, "interactive", "i", false, "interactive prompt")
-	f.StringVar(&c.SourceOwner, "source-owner", c.SourceOwner, "name of the owner (user or org) of the repo to create tag")
-	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to create tag")
-	f.BoolVarP(&c.Regex, "regex", "r", false, "matches tag by regex (bad performance warning)")
+	f.StringVar(&c.SourceOwner, "source-owner", c.SourceOwner, "name of the owner (user or org) of the repo to list tag")
+	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to list tag")
+	f.BoolVarP(&c.Regex, "regex", "r", false, "matches tag by regex (bad performance warning, it'll scan over all tags of the repo)")
 	return cmd
 }
 

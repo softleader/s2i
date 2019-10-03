@@ -86,10 +86,10 @@ func newTagDeleteCmd() *cobra.Command {
 
 	f := cmd.Flags()
 	f.BoolVarP(&c.Interactive, "interactive", "i", false, "interactive prompt")
-	f.StringVar(&c.SourceOwner, "source-owner", c.SourceOwner, "name of the owner (user or org) of the repo to create tag")
-	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to create tag")
-	f.BoolVar(&c.DryRun, "dry-run", false, "simulate an tag delete \"for real\"")
-	f.BoolVarP(&c.Regex, "regex", "r", false, "matches tag by regex (bad performance warning)")
+	f.StringVar(&c.SourceOwner, "source-owner", c.SourceOwner, "name of the owner (user or org) of the repo to delete tag")
+	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to delete tag")
+	f.BoolVar(&c.DryRun, "dry-run", false, "simulate tag deletion \"for real\"")
+	f.BoolVarP(&c.Regex, "regex", "r", false, "matches tag by regex (bad performance warning, it'll scan over all tags of the repo)")
 	return cmd
 }
 
