@@ -9,7 +9,38 @@ import (
 	"regexp"
 )
 
-const pluginTagDeleteDesc = `
+const pluginTagDeleteDesc = `刪除 tag 及其 release
+
+傳入 '--interactive' 可以開啟互動模式
+
+	$ s2i tag delete TAG..
+	$ s2i tag delete TAG.. -i
+
+s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調整:
+
+	- git 資訊: '--source-owner', '--source-repo'
+
+傳入 '--regex' 將以 regular expression 方式過濾 match 的 tag, 並刪除之
+
+	$ slctl s2i tag delete REGEX -r
+
+傳入 '--dry-run' 將 "模擬" 刪除, 不會真的作用到 GitHub 上, 通常可用於檢視 regex 是否如預期
+
+	$ slctl s2i tag delete REGEX -r --dry-run
+
+Example:
+
+	# 以互動的問答方式, 詢問所有可控制的問題
+	slctl s2i tag delete -i
+
+	# 在當前目錄的專案中, 刪除名稱 1.0.0 及 1.1.0 的 tag 及 release (完整比對)
+	$ slctl s2i tag delete 1.0.0 1.1.0
+
+	# 在當前目錄的專案中, "模擬" 刪除所有名稱為 1 開頭的 tag 及其 release 
+	$ slctl s2i tag delete ^1 -r --dry-run
+
+	# 刪除指定專案 github.com/me/my-repo 的所有 tag 及其 release
+	$ slctl s2i tag delete .+ -r --source-owner me --source-repo my-repo
 `
 
 type tagDeleteCmd struct {

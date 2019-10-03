@@ -9,7 +9,20 @@ import (
 	"regexp"
 )
 
-const pluginTagListDesc = `
+const pluginTagListDesc = `列出 tag 名稱, 發佈時間及發佈人員
+
+傳入 '--interactive' 可以開啟互動模式
+
+	$ s2i tag list TAG..
+	$ s2i tag list TAG.. -i
+
+s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調整:
+
+	- git 資訊: '--source-owner', '--source-repo'
+
+傳入 '--regex' 將以 regular expression 方式過濾 match 的 tag, 並列出之
+
+	$ slctl s2i tag list ^1. -r
 `
 
 type tagListCmd struct {
