@@ -44,13 +44,14 @@ $ slctl plugin install github.com/softleader/s2i
 # 以互動的問答方式, 詢問所有可控制的問題
 slctl s2i tag delete -i
 
-# 在前目錄的專案中, 刪除指定 tag 名稱 1.0.0 及 1.1.0 (完整比對)
+# 在當前目錄的專案中, 刪除指定 tag 名稱 1.0.0 及 1.1.0 (完整比對)
 slctl s2i tag delete 1.0.0 1.1.0
 
-# 在前目錄的專案中, 以 regex 刪除所有 1 開頭的 tag 及其 release
+# 在當前目錄的專案中, 以 regex 刪除所有 1 開頭的 tag 及其 release
 slctl s2i tag delete ^1. -r
 
-# 在前目錄的專案中, 以 regex "模擬" 刪除所有 1 開頭的 tag 及其 release (通常可用於檢視 regex 正確性, 不會真的作用到 GitHub 上)
+# 在當前目錄的專案中, 以 regex "模擬" 刪除所有 1 開頭的 tag 及其 release
+# (通常可用於檢視 regex 正確性, 不會真的作用到 GitHub 上)
 slctl s2i tag delete ^1. -r --dry-run
 
 # 指定專案 github.com/me/my-repo, 以 regex 表示刪除所有 tag 及其 release
@@ -60,7 +61,7 @@ slctl s2i tag delete .+ -r --source-owner me --source-repo my-repo
 - `slctl s2i tag list <TAG..>` - 列出 tag 名稱, 發佈時間及發佈人員, 範例:
 
 ```sh
-# 在前目錄的專案中, 以 regex 表示列出更多資訊
+# 在當前目錄的專案中, 以 regex 表示列出更多資訊
 slctl s2i tag list ^1. -r
 ```
 
