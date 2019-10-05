@@ -35,42 +35,25 @@ $ slctl plugin install github.com/softleader/s2i
 
 ### tag
 
-`slctl s2i tag` 的目的是快速的整理某個 repo 下得 tags 及其 releases, 可控制的 sub command 有:
+`slctl s2i tag` 的目的是快速的管理某個 repo 下得 tags 及其 releases, 可控制的 sub command 有:
 
 #### tag delete 
 
-`slctl s2i tag delete <TAG..>` 可刪除一至多個 tag 及其 release, 範例:
+`tag delete <TAG..>`, `tag del <TAG..>` 或 `tag rm <TAG..>` 可以協助你刪除不必要的 tag 以及 release, 支援傳一個或多個 `TAG`, 也可以跟其他 command 輕鬆整合, 如: 
 
 ```sh
-# 以互動的問答方式, 詢問所有可控制的問題
-slctl s2i tag delete -i
-
-# 在當前目錄的專案中, 刪除名稱 1.0.0 及 1.1.0 的 tag 及 release (完整比對)
-slctl s2i tag delete 1.0.0 1.1.0
-
-# 在當前目錄的專案中, 刪除所有名稱為 1 開頭或 2 開頭的 tag 及其 release (以 regex 比對)
-slctl s2i tag delete ^1 ^2 -r
-
-# 在當前目錄的專案中, "模擬" 刪除所有 1 開頭的 tag 及其 release (以 regex 比對)
-# "模擬" 通常可用於檢視 regex 正確性, 不會真的作用到 GitHub 上
-slctl s2i tag delete ^1. -r --dry-run
-
-# 刪除指定專案 github.com/me/my-repo 的所有 tag 及其 release
-slctl s2i tag delete .+ -r --source-owner me --source-repo my-repo
+slctl s2i tag delete $(git tag -l)
 ```
 
-> 請執行 `slctl s2i tag delete -h` 取得更多說明
+另外也支援了透過 regex 條件來刪除刪除符合的 TAG, 使用上需注意: 使用 regex 是針對 GitHub remote sacn 所有 tag 再過濾, 因此執行上需要較長的時間 (視 remote tag 多寡決定)
+
+請執行 `slctl s2i tag delete -h` 取得更多說明
 
 #### tag list 
 
-`slctl s2i tag list <TAG..>` 可列出 tag 名稱, 發佈時間及發佈人員, 範例:
+`tag list <TAG..>` 可列出 tag 名稱, 發佈時間及發佈人員, 一樣也支援了 regex 的過濾
 
-```sh
-# 在當前目錄的專案中, 以 regex 表示列出更多資訊
-slctl s2i tag list ^1. -r
-```
-
-> 請執行 `slctl s2i tag list -h` 取得更多說明
+請執行 `slctl s2i tag list -h` 取得更多說明
 
 ## Example
 
