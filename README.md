@@ -42,10 +42,16 @@ $ slctl plugin install github.com/softleader/s2i
 `tag delete <TAG..>`, `tag del <TAG..>` 或 `tag rm <TAG..>` 可以協助你刪除不必要的 tag 以及 release, 支援傳一個或多個 `TAG`, 也可以跟其他 command 輕鬆整合, 如: 
 
 ```sh
+# 依所有 local tag 順序刪除 remote 的 tag 及 release
 slctl s2i tag delete $(git tag -l)
 ```
 
 另外也支援了透過 regex 條件來刪除符合的 tag, 但使用 regex 時需注意: 這是透過 sacn GitHub remote 上所有 tag 來過濾, 因此執行上需要較長的時間 (視 remote tag 多寡決定)
+
+```sh
+# 將所有 remote tag 及 release 刪除
+slctl s2i tag delete .+ -r
+```
 
 請執行 `slctl s2i tag delete -h` 取得更多說明
 
