@@ -46,7 +46,7 @@ $ slctl plugin install github.com/softleader/s2i
 slctl s2i tag delete $(git tag -l)
 ```
 
-另外也支援了透過 regex 條件來刪除符合的 tag, 但使用 regex 時需注意: 這是透過 sacn GitHub remote 上所有 tag 來過濾, 因此執行上需要較長的時間 (視 remote tag 多寡決定)
+另外也支援了透過 regex (`--regex`, `-r`) 條件來刪除符合的 tag, 但使用 regex 時需注意: 這是透過 sacn GitHub remote 上所有 tag 來過濾, 因此執行上需要較長的時間 (視 remote tag 多寡決定)
 
 ```sh
 # 將所有 remote tag 及 release 刪除
