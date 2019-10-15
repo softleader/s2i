@@ -7,7 +7,7 @@ import (
 	"github.com/softleader/s2i/pkg/docker"
 	"github.com/softleader/s2i/pkg/github"
 	"github.com/softleader/s2i/pkg/jib"
-	"github.com/softleader/s2i/pkg/test"
+	"github.com/softleader/s2i/pkg/mvn"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -131,7 +131,7 @@ func newPrereleaseCmd() *cobra.Command {
 
 func (c *prereleaseCmd) run() error {
 	if !c.SkipTests {
-		if err := test.Run(logrus.StandardLogger(), c.ConfigServer, c.ConfigLabel, c.UpdateSnapshots); err != nil {
+		if err := mvn.Test(logrus.StandardLogger(), c.ConfigServer, c.ConfigLabel, c.UpdateSnapshots); err != nil {
 			return err
 		}
 	}

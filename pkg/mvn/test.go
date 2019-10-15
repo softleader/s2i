@@ -1,4 +1,4 @@
-package test
+package mvn
 
 import (
 	"fmt"
@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-// Run maven test
-func Run(log *logrus.Logger, configServer, configLabel string, updateSnapshots bool) error {
+// Test runs mvn test
+func Test(log *logrus.Logger, configServer, configLabel string, updateSnapshots bool) error {
 	args := []string{"clean", "test", "-Dspring.profiles.active=test", "-Dspring.cloud.config.uri=" + configServer}
 	if configLabel != "" {
 		args = append(args, "-Dspring.cloud.config.label="+configLabel)
