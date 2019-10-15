@@ -71,13 +71,14 @@ func Remote(log *logrus.Logger, pwd string) (token, owner, repo string) {
 
 func findRemoteOrigin(log *logrus.Logger, config string) (token, owner, repo string) {
 	groups := r.FindStringSubmatch(config)
-	log.Debugf("found %d remote url", len(groups)-1)
+	log.Debugf("found %d remote origin", len(groups)-1)
 	if len(groups) < 1 {
 		return
 	}
 	token = groups[1]
 	owner = groups[2]
 	repo = groups[3]
+	log.Debugf("found token %q, owner: %q, repo: %q", token, owner, repo)
 	return
 }
 
