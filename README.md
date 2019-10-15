@@ -27,11 +27,11 @@ $ slctl plugin install github.com/softleader/s2i
 
 ![](./docs/command-release.svg)
 
-`slctl s2i release` 的目的是快速化標準的定版程序, 如將手動去 github 下 tag 等多的步驟結合為單一 command
+`slctl s2i release` 的目的是加速定版程序, 如將手動去 github 下 tag 等多的步驟結合為單一 command
 
 請執行 `slctl s2i release -h` 取得更多說明
 
-> 2-3. 的 update service 需要專案的 Jenkinsfile 配合做些調整, 請參考 [Jenkins Hook to Update Service on Deployer](https://github.com/softleader/softleader-microservice-wiki/wiki/Jenkins-Hook-to-Update-Service-on-Deployer)
+> 上圖 2-3 的 update service 需要專案的 Jenkinsfile 配合做些調整, 請參考 [Jenkins Hook to Update Service on Deployer](https://github.com/softleader/softleader-microservice-wiki/wiki/Jenkins-Hook-to-Update-Service-on-Deployer)
 
 ### tag
 
