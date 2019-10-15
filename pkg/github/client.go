@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	r = regexp.MustCompile(`url = (.+)`)
+	r = regexp.MustCompile(`\[remote "origin"\][\n|\r|\n\r|\t|\s]+url = .+github.com[/:](.+)/(.+).git`)
 )
 
 // NewTokenClient 建立跟 github 互動的 client
@@ -66,19 +66,17 @@ func Remote(log *logrus.Logger, pwd string) (owner, repo string) {
 		return
 	}
 	config := string(b)
+	return findRemoteOriginURL(log, config)
+}
+
+func findRemoteOriginURL(log *logrus.Logger, config string) (owner, repo string) {
 	groups := r.FindStringSubmatch(config)
 	log.Debugf("found %d remote url", len(groups)-1)
 	if len(groups) < 1 {
 		return
 	}
-	remote := groups[1]
-	remote = strings.TrimPrefix(remote, "git@github.com:")
-	remote = strings.TrimPrefix(remote, "https://github.com/")
-	remote = strings.TrimSuffix(remote, ".git")
-	log.Debugf("used remote url: %s", remote)
-	spited := strings.Split(remote, "/")
-	owner = spited[0]
-	repo = spited[1]
+	owner = groups[1]
+	repo = groups[2]
 	return
 }
 

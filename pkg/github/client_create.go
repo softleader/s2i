@@ -62,7 +62,6 @@ func CreatePrerelease(log *logrus.Logger, token, owner, repo, branch, tag string
 	return nil
 }
 
-
 func isTagNameAlreadyExists(errors []github.Error) bool {
 	for _, err := range errors {
 		if err.Field == "tag_name" && err.Code == "already_exists" {
