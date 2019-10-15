@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	r = regexp.MustCompile(`\[remote "origin"\][\n|\r|\n\r|\t|\s]+url = .+github.com[/:](.+)/(.+).git`)
+	r = regexp.MustCompile(`\[remote "origin"\][\n|\r|\n\r|\t|\s]+url = [https://|git@]+([^@]+)?@?github.com[/:](.+)/(.+).git`)
 )
 
 // NewTokenClient 建立跟 github 互動的 client
@@ -57,8 +57,8 @@ func FindNextReleaseVersion(log *logrus.Logger, token, owner, repo string) (stri
 
 }
 
-// Remote 回傳預設的 owner and repo
-func Remote(log *logrus.Logger, pwd string) (owner, repo string) {
+// Remote 回傳從 .git 中找到的 token, owner and repo
+func Remote(log *logrus.Logger, pwd string) (token, owner, repo string) {
 	p := filepath.Join(pwd, ".git", "config")
 	log.Debugf("loading git config: %s", p)
 	b, err := ioutil.ReadFile(p)
@@ -66,17 +66,18 @@ func Remote(log *logrus.Logger, pwd string) (owner, repo string) {
 		return
 	}
 	config := string(b)
-	return findRemoteOriginURL(log, config)
+	return findRemoteOrigin(log, config)
 }
 
-func findRemoteOriginURL(log *logrus.Logger, config string) (owner, repo string) {
+func findRemoteOrigin(log *logrus.Logger, config string) (token, owner, repo string) {
 	groups := r.FindStringSubmatch(config)
 	log.Debugf("found %d remote url", len(groups)-1)
 	if len(groups) < 1 {
 		return
 	}
-	owner = groups[1]
-	repo = groups[2]
+	token = groups[1]
+	owner = groups[2]
+	repo = groups[3]
 	return
 }
 

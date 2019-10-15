@@ -29,7 +29,10 @@ func TestFindRemoteFromTokenClone(t *testing.T) {
 	wmstate = zoomed
 	geometry = 1199x645+38+38 273 293`
 
-	owner, repo := findRemoteOriginURL(logrus.StandardLogger(), config)
+	token, owner, repo := findRemoteOrigin(logrus.StandardLogger(), config)
+	if token != "ec5365ad1a31edd35446b04738aee99dfbf8a7d4" {
+		t.Fatalf("token should be ec5365ad1a31edd35446b04738aee99dfbf8a7d4, but got %q", token)
+	}
 	if owner != "softleader-product" {
 		t.Fatalf("owner should be softleader-product, but got %q", owner)
 	}
@@ -59,7 +62,10 @@ func TestFindRemoteFromSshClone(t *testing.T) {
 	remote = origin
 	merge = refs/heads/v2_5`
 
-	owner, repo := findRemoteOriginURL(logrus.StandardLogger(), config)
+	token, owner, repo := findRemoteOrigin(logrus.StandardLogger(), config)
+	if token != "" {
+		t.Fatalf("token should be empty, but got %q", token)
+	}
 	if owner != "softleader" {
 		t.Fatalf("owner should be softleader, but got %q", owner)
 	}
@@ -92,7 +98,10 @@ func TestFindRemoteFromHttpsClone(t *testing.T) {
     remote = origin
     merge = refs/heads/v2_5`
 
-	owner, repo := findRemoteOriginURL(logrus.StandardLogger(), config)
+	token, owner, repo := findRemoteOrigin(logrus.StandardLogger(), config)
+	if token != "" {
+		t.Fatalf("token should be empty, but got %q", token)
+	}
 	if owner != "softleader" {
 		t.Fatalf("owner should be softleader, but got %q", owner)
 	}

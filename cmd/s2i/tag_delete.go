@@ -62,7 +62,10 @@ func newTagDeleteCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(c.SourceOwner) == 0 || len(c.SourceRepo) == 0 {
 				if pwd, err := os.Getwd(); err == nil {
-					owner, repo := github.Remote(logrus.StandardLogger(), pwd)
+					t, owner, repo := github.Remote(logrus.StandardLogger(), pwd)
+					if len(c.SourceOwner) != 0 { // 代表此 repo 是用指定 token clone 的, 因此換掉這次 global 的 token
+						token = t
+					}
 					if len(c.SourceOwner) == 0 {
 						c.SourceOwner = owner
 					}

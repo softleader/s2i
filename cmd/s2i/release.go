@@ -61,7 +61,11 @@ func newReleaseCmd() *cobra.Command {
 				c.Image.Tag = args[0]
 			}
 			if pwd, err := os.Getwd(); err == nil {
-				c.SourceOwner, c.SourceRepo = github.Remote(logrus.StandardLogger(), pwd)
+				var t string
+				t, c.SourceOwner, c.SourceRepo = github.Remote(logrus.StandardLogger(), pwd)
+				if len(t) != 0 {
+					token = t // 代表此 repo 是用指定 token clone 的, 因此換掉這次 global 的 token
+				}
 				c.Image.Name = c.SourceRepo
 				c.SourceBranch = github.Head(logrus.StandardLogger(), pwd)
 			}
