@@ -48,19 +48,20 @@ s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調�
 
 type prereleaseCmd struct {
 	Force           bool
-	Interactive     bool
-	SourceOwner     string
-	SourceRepo      string
-	SourceBranch    string
+	interactive     bool
+	promptSize      int
+	SourceOwner     string `yaml:"source-owner"`
+	SourceRepo      string `yaml:"source-repo"`
+	SourceBranch    string `yaml:"source-branch"`
 	SkipTests       bool
-	UpdateSnapshots bool
-	ConfigServer    string
-	ConfigLabel     string
+	UpdateSnapshots bool   `yaml:"update-snapshots"`
+	ConfigServer    string `yaml:"config-server"`
+	ConfigLabel     string `yaml:"config-label"`
 	Image           *docker.SoftleaderHubImage
 	Stage           string
 	Deployer        string
 	Auth            *jib.Auth
-	ServiceID       string
+	ServiceID       string `yaml:"service-id"`
 }
 
 func newPrereleaseCmd() *cobra.Command {
@@ -75,7 +76,7 @@ func newPrereleaseCmd() *cobra.Command {
 		Long:    pluginPrereleaseDesc,
 		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if !c.Interactive && len(args) < 1 {
+			if !c.interactive && len(args) < 1 {
 				return errors.New(`accepts 1 arg(s), received 0`)
 			}
 			if len(args) > 0 {
@@ -91,7 +92,7 @@ func newPrereleaseCmd() *cobra.Command {
 				c.SourceBranch = github.Head(logrus.StandardLogger(), pwd)
 				c.Auth = jib.GetAuth(logrus.StandardLogger(), pwd)
 			}
-			if c.Interactive {
+			if c.interactive {
 				if c.Image.Tag == "" {
 					var err error
 					c.Image.Tag, err = github.FindNextReleaseVersion(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo)
@@ -112,7 +113,8 @@ func newPrereleaseCmd() *cobra.Command {
 
 	f := cmd.Flags()
 	f.BoolVarP(&c.Force, "force", "f", false, "force to delete the tag if it already exists")
-	f.BoolVarP(&c.Interactive, "interactive", "i", false, "interactive prompt")
+	f.BoolVarP(&c.interactive, "interactive", "i", false, "interactive prompt")
+	f.IntVar(&c.promptSize, "interactive-prompt-size", 7, "interactive prompt size")
 	f.BoolVar(&c.SkipTests, "skip-tests", false, "skip tests when building image")
 	f.BoolVarP(&c.UpdateSnapshots, "update-snapshots", "U", false, "force to check for updated snapshots on remote repositories")
 	f.StringVar(&c.SourceOwner, "source-owner", c.SourceOwner, "name of the owner (user or org) of the repo to create tag")

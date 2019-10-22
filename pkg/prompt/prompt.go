@@ -101,7 +101,7 @@ func AskYesNo(question, defaultValue string, ref *bool) (err error) {
 }
 
 // AskServiceID 問 docker swarm serviceID 問題
-func AskServiceID(log *logrus.Logger, agent, agentVersion, deployerURL, app, defaultValue string, ref *string) (err error) {
+func AskServiceID(log *logrus.Logger, agent, agentVersion, deployerURL, app, defaultValue string, size int, ref *string) (err error) {
 	question := "Service id to update image (leave blank if you don't need to update)"
 
 	if defaultValue != "" {
@@ -130,6 +130,7 @@ func AskServiceID(log *logrus.Logger, agent, agentVersion, deployerURL, app, def
 			input = strings.Replace(strings.ToLower(input), " ", "", -1)
 			return strings.Contains(name, input)
 		},
+		Size: size,
 	}
 	i, _, err := prompt.Run()
 	if err != nil {

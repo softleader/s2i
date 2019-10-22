@@ -14,7 +14,7 @@ func releaseQuestions(c *releaseCmd) error {
 		return err
 	}
 
-	if err := prompt.AskServiceID(logrus.StandardLogger(), "s2i", metadata.String(), c.Deployer, c.Image.Name, c.ServiceID, &c.ServiceID); err != nil {
+	if err := prompt.AskServiceID(logrus.StandardLogger(), "s2i", metadata.String(), c.Deployer, c.Image.Name, c.ServiceID, c.promptSize, &c.ServiceID); err != nil {
 		return err
 	}
 

@@ -7,7 +7,10 @@ import (
 	"github.com/softleader/s2i/pkg/github"
 	"github.com/softleader/s2i/pkg/jenkins"
 	"github.com/spf13/cobra"
+	"io/ioutil"
 	"os"
+	"path/filepath"
+	"regexp"
 )
 
 const pluginReleaseDesc = `Draft a release to SoftLeader docker swarm ecosystem
@@ -33,15 +36,20 @@ s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調�
 	$ s2i release -h
 `
 
+var (
+	hook = regexp.MustCompile(`params.serviceID`)
+)
+
 type releaseCmd struct {
-	Interactive  bool
-	SourceOwner  string
-	SourceRepo   string
-	SourceBranch string
+	interactive  bool
+	promptSize   int
+	SourceOwner  string `yaml:"source-owner"`
+	SourceRepo   string `yaml:"source-repo"`
+	SourceBranch string `yaml:"source-branch"`
 	Image        *docker.SoftleaderHubImage
 	Jenkins      string
 	Deployer     string
-	ServiceID    string
+	ServiceID    string `yaml:"service-id"`
 }
 
 func newReleaseCmd() *cobra.Command {
@@ -54,7 +62,7 @@ func newReleaseCmd() *cobra.Command {
 		Long:  pluginReleaseDesc,
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if !c.Interactive && len(args) < 1 {
+			if !c.interactive && len(args) < 1 {
 				return errors.New(`accepts 1 arg(s), received 0`)
 			}
 			if len(args) > 0 {
@@ -69,7 +77,7 @@ func newReleaseCmd() *cobra.Command {
 				c.Image.Name = c.SourceRepo
 				c.SourceBranch = github.Head(logrus.StandardLogger(), pwd)
 			}
-			if c.Interactive {
+			if c.interactive {
 				if c.Image.Tag == "" {
 					var err error
 					c.Image.Tag, err = github.FindNextReleaseVersion(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo)
@@ -89,7 +97,8 @@ func newReleaseCmd() *cobra.Command {
 	}
 
 	f := cmd.Flags()
-	f.BoolVarP(&c.Interactive, "interactive", "i", false, "interactive prompt")
+	f.BoolVarP(&c.interactive, "interactive", "i", false, "interactive prompt")
+	f.IntVar(&c.promptSize, "interactive-prompt-size", 7, "interactive prompt size")
 	f.StringVar(&c.SourceOwner, "source-owner", c.SourceOwner, "name of the owner (user or org) of the repo to create tag")
 	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to create tag")
 	f.StringVar(&c.SourceBranch, "source-branch", c.SourceBranch, "name of branch to create tag")
@@ -118,5 +127,27 @@ func (c *releaseCmd) run() error {
 	}
 
 	logrus.Printf("Everything is all set, you can check the progress at: %s/job/%s", c.Jenkins, c.SourceRepo)
+
+	if c.ServiceID != "" {
+		ensureJenkinsfileContainsServiceIDHook()
+	}
 	return nil
+}
+
+// service id 需要 Jenkinsfile 也要配合修改, 如果發現沒有查到關鍵字就提醒一下吧
+func ensureJenkinsfileContainsServiceIDHook() {
+	pwd, err := os.Getwd()
+	if err != nil {
+		return
+	}
+	p := filepath.Join(pwd, "Jenkinsfile")
+	b, err := ioutil.ReadFile(p)
+	if err != nil {
+		return
+	}
+	jenkinsfile := string(b)
+	if !hook.MatchString(jenkinsfile) {
+		logrus.Warnf(`not found any hook stage in '%s', auto serviceID update might not work
+read more: https://github.com/softleader/softleader-microservice-wiki/wiki/Jenkins-Hook-to-Update-Service-on-Deployer`, p)
+	}
 }
