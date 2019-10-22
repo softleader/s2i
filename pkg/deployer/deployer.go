@@ -10,7 +10,7 @@ import (
 
 // UpdateService 更新 deployer 的 service
 func UpdateService(log *logrus.Logger, agent, agentVersion, deployer, dockerServiceID string, image *docker.SoftleaderHubImage) error {
-	log.Printf("updating docker service id: %s", dockerServiceID)
+	log.Printf("Updating docker service id: %s", dockerServiceID)
 	params := make(map[string]string)
 	params["image"] = image.String()
 	resty.SetDebug(log.IsLevelEnabled(logrus.DebugLevel))
