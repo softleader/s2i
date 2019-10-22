@@ -53,7 +53,8 @@ type prereleaseCmd struct {
 	SourceOwner     string `yaml:"source-owner"`
 	SourceRepo      string `yaml:"source-repo"`
 	SourceBranch    string `yaml:"source-branch"`
-	SkipTests       bool
+	SkipTests       bool   `yaml:"skip-tests"`
+	SkipDraft       bool   `yaml:"skip-draft"`
 	UpdateSnapshots bool   `yaml:"update-snapshots"`
 	ConfigServer    string `yaml:"config-server"`
 	ConfigLabel     string `yaml:"config-label"`
@@ -116,6 +117,7 @@ func newPrereleaseCmd() *cobra.Command {
 	f.BoolVarP(&c.interactive, "interactive", "i", false, "interactive prompt")
 	f.IntVar(&c.promptSize, "interactive-prompt-size", 7, "interactive prompt size")
 	f.BoolVar(&c.SkipTests, "skip-tests", false, "skip tests when building image")
+	f.BoolVar(&c.SkipDraft, "skip-draft", false, "skip draft pre-release tag")
 	f.BoolVarP(&c.UpdateSnapshots, "update-snapshots", "U", false, "force to check for updated snapshots on remote repositories")
 	f.StringVar(&c.SourceOwner, "source-owner", c.SourceOwner, "name of the owner (user or org) of the repo to create tag")
 	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to create tag")
@@ -155,8 +157,10 @@ func (c *prereleaseCmd) run() error {
 			return err
 		}
 	}
-	if err := github.CreatePrerelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.SourceBranch, c.Image.Tag, c.Force); err != nil {
-		return err
+	if !c.SkipDraft {
+		if err := github.CreatePrerelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.SourceBranch, c.Image.Tag, c.Force); err != nil {
+			return err
+		}
 	}
 	if c.ServiceID != "" {
 		if err := deployer.UpdateService(logrus.StandardLogger(), "s2i", metadata.String(), c.Deployer, c.ServiceID, c.Image); err != nil {
