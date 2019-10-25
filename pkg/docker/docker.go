@@ -7,6 +7,20 @@ import (
 	"strings"
 )
 
+// Build to exec 'docker build' command
+func Build(log *logrus.Logger, image *SoftleaderHubImage) error {
+	cmd := exec.Command("docker", "build", "-t", image.String(), ".")
+	if log.IsLevelEnabled(logrus.DebugLevel) {
+		log.Out.Write([]byte(fmt.Sprintln(strings.Join(cmd.Args, " "))))
+	}
+	cmd.Stdout = log.Out
+	cmd.Stderr = log.Out
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	return cmd.Wait()
+}
+
 // Push to exec 'docker push' command
 func Push(log *logrus.Logger, image *SoftleaderHubImage) error {
 	cmd := exec.Command("docker", "push", image.String())

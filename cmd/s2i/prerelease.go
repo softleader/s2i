@@ -147,7 +147,7 @@ func (c *prereleaseCmd) run() error {
 	} else {
 		// 當沒提供 docker registry auth 資訊時, 我們就 build 到 local docker daemon 再推
 		// 因為使用者可能已經在 local 的 docker daemon 登入過 hub.softleader.com.tw
-		if err := jib.DockerBuild(logrus.StandardLogger(), c.Image, c.UpdateSnapshots); err != nil {
+		if err := c.dockerBuild(); err != nil {
 			return err
 		}
 		if err := docker.Push(logrus.StandardLogger(), c.Image); err != nil {
@@ -169,4 +169,21 @@ func (c *prereleaseCmd) run() error {
 	}
 	logrus.Printf("Everything is all set, you are good to go.")
 	return nil
+}
+
+func (c *prereleaseCmd) dockerBuild() error {
+	// 如果已經照著 https://github.com/softleader/softleader-microservice-wiki/wiki/Using-JIB-to-build-image 改的話, 這邊應該會成功
+	if err := jib.DockerBuild(logrus.StandardLogger(), c.Image, c.UpdateSnapshots); err == nil {
+		return nil
+	}
+	// 如果 jib 包失敗, 我們試著依照 https://github.com/softleader/softleader-microservice-wiki/wiki/Using-Dockerfile-to-build-cache-layers-image 來包版
+	if err := mvn.Verify(logrus.StandardLogger(), c.UpdateSnapshots); err == nil {
+		if err := docker.Build(logrus.StandardLogger(), c.Image); err == nil {
+			return nil
+		}
+	}
+	return errors.New(`s2i prerelease supports only cache-layers-image project, read more:
+Using JIB to build image: https://github.com/softleader/softleader-microservice-wiki/wiki/Using-JIB-to-build-image
+Using Dockerfile to build cache layers image: https://github.com/softleader/softleader-microservice-wiki/wiki/Using-Dockerfile-to-build-cache-layers-image
+`)
 }

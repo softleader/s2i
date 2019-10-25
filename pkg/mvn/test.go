@@ -27,3 +27,21 @@ func Test(log *logrus.Logger, configServer, configLabel string, updateSnapshots 
 	}
 	return cmd.Wait()
 }
+
+// Verify runs mvn verify
+func Verify(log *logrus.Logger, updateSnapshots bool) error {
+	args := []string{"clean", "verify", "-DskipTests"}
+	if updateSnapshots {
+		args = append(args, "-U")
+	}
+	cmd := exec.Command("mvn", args...)
+	if log.IsLevelEnabled(logrus.DebugLevel) {
+		log.Out.Write([]byte(fmt.Sprintln(strings.Join(cmd.Args, " "))))
+	}
+	cmd.Stdout = log.Out
+	cmd.Stderr = log.Out
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	return cmd.Wait()
+}
