@@ -183,7 +183,7 @@ func (c *prereleaseCmd) dockerBuild() error {
 		}
 	}
 	return errors.New(`s2i prerelease supports only cache-layers-image project, read more:
-Using JIB to build image: https://github.com/softleader/softleader-microservice-wiki/wiki/Using-JIB-to-build-image
-Using Dockerfile to build cache layers image: https://github.com/softleader/softleader-microservice-wiki/wiki/Using-Dockerfile-to-build-cache-layers-image
+JIB: https://github.com/softleader/softleader-microservice-wiki/wiki/Using-JIB-to-build-image
+Dockerfile: https://github.com/softleader/softleader-microservice-wiki/wiki/Using-Dockerfile-to-build-cache-layers-image
 `)
 }
