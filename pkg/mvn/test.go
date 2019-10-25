@@ -28,9 +28,9 @@ func Test(log *logrus.Logger, configServer, configLabel string, updateSnapshots 
 	return cmd.Wait()
 }
 
-// Verify runs mvn verify
-func Verify(log *logrus.Logger, updateSnapshots bool) error {
-	args := []string{"clean", "verify", "-DskipTests"}
+// Package runs mvn package
+func Package(log *logrus.Logger, updateSnapshots bool) error {
+	args := []string{"clean", "package", "-DskipTests"}
 	if updateSnapshots {
 		args = append(args, "-U")
 	}

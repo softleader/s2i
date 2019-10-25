@@ -176,14 +176,9 @@ func (c *prereleaseCmd) dockerBuild() error {
 	if err := jib.DockerBuild(logrus.StandardLogger(), c.Image, c.UpdateSnapshots); err == nil {
 		return nil
 	}
-	// 如果 jib 包失敗, 我們試著依照 https://github.com/softleader/softleader-microservice-wiki/wiki/Using-Dockerfile-to-build-cache-layers-image 來包版
-	if err := mvn.Verify(logrus.StandardLogger(), c.UpdateSnapshots); err == nil {
-		if err := docker.Build(logrus.StandardLogger(), c.Image); err == nil {
-			return nil
-		}
+	// 如果 jib 包失敗, 我們就依照正常的方式 package 吧
+	if err := mvn.Package(logrus.StandardLogger(), c.UpdateSnapshots); err != nil {
+		return err
 	}
-	return errors.New(`s2i prerelease supports only cache-layers-image project, read more:
-JIB: https://github.com/softleader/softleader-microservice-wiki/wiki/Using-JIB-to-build-image
-Dockerfile: https://github.com/softleader/softleader-microservice-wiki/wiki/Using-Dockerfile-to-build-cache-layers-image
-`)
+	return docker.Build(logrus.StandardLogger(), c.Image)
 }
