@@ -19,7 +19,7 @@ $ slctl plugin install github.com/softleader/s2i
 `slctl s2i prerelease` 或 `slctl s2i pre` 的目的是快速的將當前修改的異動版更到開發環境 docker swarm 中, 並且自動的在 github 上將當前的 branch 保留一個版本 (pre-release),
 由於這段是在 local 進行, 因此使用前請務必確保當前專案 *local 已經跟 remote 同步過程式了*
 
-s2i 會優先試著透過 JIB 來建議 Image, 若發生任何問題會再試著以 `mvn package && docker build` 來建置 Image.
+s2i 會優先試著透過 JIB 來建置 Image, 若發生任何問題會再試著以 `mvn package && docker build` 來建置 Image.
 
 請執行 `slctl s2i pre -h` 取得更多說明
 
