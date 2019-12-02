@@ -63,6 +63,8 @@ type prereleaseCmd struct {
 	Deployer        string
 	Auth            *jib.Auth
 	ServiceID       string `yaml:"service-id"`
+	ShipStrategy    int    `yaml:"build-strategy"`
+	pwd             string
 }
 
 func newPrereleaseCmd() *cobra.Command {
@@ -76,22 +78,22 @@ func newPrereleaseCmd() *cobra.Command {
 		Short:   "draft a pre-release version",
 		Long:    pluginPrereleaseDesc,
 		Args:    cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if !c.interactive && len(args) < 1 {
 				return errors.New(`accepts 1 arg(s), received 0`)
 			}
 			if len(args) > 0 {
 				c.Image.Tag = args[0]
 			}
-			if pwd, err := os.Getwd(); err == nil {
+			if c.pwd, err = os.Getwd(); err == nil {
 				var t string
-				t, c.SourceOwner, c.SourceRepo = github.Remote(logrus.StandardLogger(), pwd)
+				t, c.SourceOwner, c.SourceRepo = github.Remote(logrus.StandardLogger(), c.pwd)
 				if len(t) != 0 { // 代表此 repo 是用指定 token clone 的, 因此換掉這次 global 的 token
 					token = t
 				}
 				c.Image.Name = c.SourceRepo
-				c.SourceBranch = github.Head(logrus.StandardLogger(), pwd)
-				c.Auth = jib.GetAuth(logrus.StandardLogger(), pwd)
+				c.SourceBranch = github.Head(logrus.StandardLogger(), c.pwd)
+				c.Auth = jib.GetAuth(logrus.StandardLogger(), c.pwd)
 			}
 			if c.interactive {
 				if c.Image.Tag == "" {
@@ -130,6 +132,7 @@ func newPrereleaseCmd() *cobra.Command {
 	f.StringVar(&c.Auth.Username, "jib-auth-username", "", "username of docker registry for jib")
 	f.StringVar(&c.Auth.Password, "jib-auth-password", "", "password of docker registry for jib")
 	f.StringVar(&c.ServiceID, "service-id", "", "docker swarm service id to update")
+	f.IntVarP(&c.ShipStrategy, "ship-strategy", "S", 0, "specify how to ship source, 0 for auto, 1 for jib, 2 for docker")
 	return cmd
 }
 
@@ -140,23 +143,11 @@ func (c *prereleaseCmd) run() error {
 		}
 	}
 	c.Image.SetPreRelease(c.Stage)
-	if c.Auth.IsValid() {
-		if err := jib.Build(logrus.StandardLogger(), c.Image, c.Auth, c.UpdateSnapshots); err != nil {
-			return err
-		}
-	} else {
-		// 當沒提供 docker registry auth 資訊時, 我們就 build 到 local docker daemon 再推
-		// 因為使用者可能已經在 local 的 docker daemon 登入過 hub.softleader.com.tw
-		if err := c.dockerBuild(); err != nil {
-			return err
-		}
-		if err := docker.Push(logrus.StandardLogger(), c.Image); err != nil {
-			return err
-		}
-		if err := docker.Rmi(logrus.StandardLogger(), c.Image); err != nil {
-			return err
-		}
+
+	if err := c.ship(); err != nil {
+		return err
 	}
+
 	if !c.SkipDraft {
 		if err := github.CreatePrerelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.SourceBranch, c.Image.Tag, c.Force); err != nil {
 			return err
@@ -171,14 +162,49 @@ func (c *prereleaseCmd) run() error {
 	return nil
 }
 
-func (c *prereleaseCmd) dockerBuild() error {
-	// 如果已經照著 https://github.com/softleader/softleader-microservice-wiki/wiki/Using-JIB-to-build-image 改的話, 這邊應該會成功
-	if err := jib.DockerBuild(logrus.StandardLogger(), c.Image, c.UpdateSnapshots); err == nil {
-		return nil
+func (c *prereleaseCmd) ship() error {
+	if c.ShipStrategy == 1 { // jib
+		return c.jibRelease()
 	}
-	// 如果 jib 包失敗, 我們就依照正常的方式 package 吧
+
+	if c.ShipStrategy == 2 { // docker
+		return c.dockerRelease()
+	}
+
+	// auto 兩個輪流試試看
+	if !docker.ContainsMultiStageBuilds(logrus.StandardLogger(), c.pwd) {
+		if err := c.jibRelease(); err == nil {
+			return nil
+		}
+	}
+	return c.dockerRelease()
+}
+
+func (c *prereleaseCmd) jibRelease() error {
+	if c.Auth.IsValid() {
+		return jib.Build(logrus.StandardLogger(), c.Image, c.Auth, c.UpdateSnapshots)
+	}
+	// 當沒提供 docker registry auth 資訊時, 我們就 build 到 local docker daemon 再推
+	// 因為使用者可能已經在 local 的 docker daemon 登入過 hub.softleader.com.tw
+	if err := jib.DockerBuild(logrus.StandardLogger(), c.Image, c.UpdateSnapshots); err != nil {
+		return err
+	}
+	return c.dockerPublish()
+}
+
+func (c *prereleaseCmd) dockerRelease() error {
 	if err := mvn.Package(logrus.StandardLogger(), c.UpdateSnapshots); err != nil {
 		return err
 	}
-	return docker.Build(logrus.StandardLogger(), c.Image)
+	if err := docker.Build(logrus.StandardLogger(), c.Image); err != nil {
+		return err
+	}
+	return c.dockerPublish()
+}
+
+func (c *prereleaseCmd) dockerPublish() error {
+	if err := docker.Push(logrus.StandardLogger(), c.Image); err != nil {
+		return err
+	}
+	return docker.Rmi(logrus.StandardLogger(), c.Image)
 }

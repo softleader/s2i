@@ -68,6 +68,10 @@ func prereleaseQuestions(c *prereleaseCmd) error {
 		return err
 	}
 
+	if err := prompt.AskIntRequired("Strategy to ship source, 0 for auto, 1 for jib, 2 for docker", c.ShipStrategy, &c.ShipStrategy); err != nil {
+		return err
+	}
+
 	ok, err = prompt.Confirm(logrus.StandardLogger(), c)
 	if err != nil {
 		return err

@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/softleader/s2i/pkg/deployer"
 	"gopkg.in/yaml.v2"
+	"strconv"
 	"strings"
 )
 
@@ -50,6 +51,26 @@ func AskRequired(question, defaultValue string, ref *string) (err error) {
 		},
 	}
 	*ref, err = p.Run()
+	return
+}
+
+// AskIntRequired 問單一 int 問題, 且必填
+func AskIntRequired(question string, defaultValue int, ref *int) (err error) {
+	p := promptui.Prompt{
+		Label:   question,
+		Default: strconv.Itoa(defaultValue),
+		Validate: func(s string) error {
+			if strings.TrimSpace(s) == "" {
+				return errors.New("required")
+			}
+			return nil
+		},
+	}
+	ans, err := p.Run()
+	if err != nil {
+		return err
+	}
+	*ref, err = strconv.Atoi(ans)
 	return
 }
 
