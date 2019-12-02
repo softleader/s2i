@@ -182,11 +182,9 @@ func (c *prereleaseCmd) ship() error {
 		return c.dockerRelease()
 	}
 
-	// auto 兩個輪流試試看
-	if !docker.ContainsMultiStageBuilds(logrus.StandardLogger(), c.pwd) {
-		if err := c.jibRelease(); err == nil {
-			return nil
-		}
+	// auto
+	if err := c.jibRelease(); err == nil {
+		return nil
 	}
 	return c.dockerRelease()
 }
@@ -204,8 +202,10 @@ func (c *prereleaseCmd) jibRelease() error {
 }
 
 func (c *prereleaseCmd) dockerRelease() error {
-	if err := mvn.Package(logrus.StandardLogger(), c.UpdateSnapshots); err != nil {
-		return err
+	if !docker.ContainsMultiStageBuilds(logrus.StandardLogger(), c.pwd) { // 如果不是 multi-stage build 才 build build 看
+		if err := mvn.Package(logrus.StandardLogger(), c.UpdateSnapshots); err != nil {
+			return err
+		}
 	}
 	if err := docker.Build(logrus.StandardLogger(), c.Image); err != nil {
 		return err

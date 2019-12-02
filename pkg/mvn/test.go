@@ -9,7 +9,7 @@ import (
 
 // Test runs mvn test
 func Test(log *logrus.Logger, configServer, configLabel string, updateSnapshots bool) error {
-	args := []string{"clean", "test", "-Dspring.profiles.active=test", "-Dspring.cloud.config.uri=" + configServer}
+	args := []string{"clean", "test", "-e", "-Dspring.profiles.active=test", "-Dspring.cloud.config.uri=" + configServer}
 	if configLabel != "" {
 		args = append(args, "-Dspring.cloud.config.label="+configLabel)
 	}
@@ -30,7 +30,7 @@ func Test(log *logrus.Logger, configServer, configLabel string, updateSnapshots 
 
 // Package runs mvn package
 func Package(log *logrus.Logger, updateSnapshots bool) error {
-	args := []string{"clean", "package", "-DskipTests"}
+	args := []string{"clean", "package", "-e", "-DskipTests"}
 	if updateSnapshots {
 		args = append(args, "-U")
 	}
