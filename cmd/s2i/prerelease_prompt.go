@@ -68,7 +68,7 @@ func prereleaseQuestions(c *prereleaseCmd) error {
 		return err
 	}
 
-	if err := prompt.AskIntRequired("Strategy to ship source, 0 for auto, 1 for jib, 2 for docker", c.ShipStrategy, &c.ShipStrategy); err != nil {
+	if err := prompt.AskIntRequired("Strategy to ship source, 0 for auto-detect, 1 for jib, 2 for docker", c.ShipStrategy, &c.ShipStrategy); err != nil {
 		return err
 	}
 

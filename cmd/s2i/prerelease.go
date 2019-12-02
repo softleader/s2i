@@ -41,6 +41,17 @@ s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調�
 
 	$ s2i pre TAG --service-id SERVICE_ID
 
+如果你當前的專案並非 maven 專案 (如 nodejs), 請務必使用 multi-stage builds 來建構 source code
+(https://docs.docker.com/develop/develop-images/multistage-build/)
+s2i 會自動判斷 multi-stage build 等專案建構條件, 在 jib 及 docker 之間自動的挑選 shipping source 的策略
+你也可以傳入 '--ship-source' 來指定策略:
+
+	- 0 for auto-detect (default)
+	- 1 for jib
+	- 2 for docker
+
+	$ s2i pre TAG -S 1
+
 可以使用 '--help' 查看所有選項及其詳細說明
 
 	$ s2i pre -h
@@ -132,7 +143,7 @@ func newPrereleaseCmd() *cobra.Command {
 	f.StringVar(&c.Auth.Username, "jib-auth-username", "", "username of docker registry for jib")
 	f.StringVar(&c.Auth.Password, "jib-auth-password", "", "password of docker registry for jib")
 	f.StringVar(&c.ServiceID, "service-id", "", "docker swarm service id to update")
-	f.IntVarP(&c.ShipStrategy, "ship-strategy", "S", 0, "specify how to ship source, 0 for auto, 1 for jib, 2 for docker")
+	f.IntVarP(&c.ShipStrategy, "ship-strategy", "S", 0, "specify how to ship source, 0 for auto-detect, 1 for jib, 2 for docker")
 	return cmd
 }
 
