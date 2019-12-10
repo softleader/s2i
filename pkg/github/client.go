@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/coreos/go-semver/semver"
-	"github.com/google/go-github/v21/github"
+	"github.com/google/go-github/v28/github"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"io/ioutil"

@@ -2,43 +2,40 @@ package github
 
 import (
 	"context"
-	"github.com/google/go-github/v21/github"
+	"github.com/google/go-github/v28/github"
 	"github.com/sirupsen/logrus"
-	"regexp"
 )
 
-// ListReleaseByRegex 依照 regex 列出符合的 release 資訊
-func ListReleaseByRegex(log *logrus.Logger, token, owner, repo string, regex []*regexp.Regexp) error {
+// ListReleaseByMatcher 依照指定 matcher 列出符合的 release 資訊
+func ListReleaseByMatcher(log *logrus.Logger, token, owner, repo string, matcher TagMatcher) error {
 	ctx := context.Background()
 	client, err := newTokenClient(ctx, token)
 	if err != nil {
 		return err
 	}
 
-	opt := &github.ListOptions{}
+	opt := &github.ListOptions{
+		Page:    1,
+		PerPage: 100,
+	}
 	for {
-		release, resp, err := client.Repositories.ListReleases(ctx, owner, repo, nil)
+		log.Debugf("fetching page %v of tags", opt.Page)
+		releases, resp, err := client.Repositories.ListReleases(ctx, owner, repo, opt)
 		if err != nil {
 			return err
 		}
-		if err := listReleasesByRegex(log, release, regex); err != nil {
-			return err
+		for _, release := range releases {
+			if matcher.Matches(release.GetName()) {
+				log.Infof("%s\t%s\t%s", release.GetName(), release.GetPublishedAt(), release.GetAuthor().GetLogin())
+			}
 		}
 		if resp.NextPage == 0 {
 			break
 		}
+		log.Debugf("moving to the next page: %v/%v", resp.NextPage, resp.LastPage)
 		opt.Page = resp.NextPage
 	}
 
-	return nil
-}
-
-func listReleasesByRegex(log *logrus.Logger, releases []*github.RepositoryRelease, regex []*regexp.Regexp) error {
-	for _, release := range releases {
-		if anyMatch(regex, release.GetName()) {
-			log.Infof("%s\t%s\t%s", release.GetName(), release.GetPublishedAt(), release.GetAuthor().GetLogin())
-		}
-	}
 	return nil
 }
 

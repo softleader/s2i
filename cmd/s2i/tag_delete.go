@@ -6,7 +6,6 @@ import (
 	"github.com/softleader/s2i/pkg/github"
 	"github.com/spf13/cobra"
 	"os"
-	"regexp"
 )
 
 const pluginTagDeleteDesc = `刪除 tag 及其 release
@@ -50,6 +49,7 @@ type tagDeleteCmd struct {
 	DryRun      bool
 	Interactive bool
 	Regex       bool
+	SemVer      bool
 }
 
 func newTagDeleteCmd() *cobra.Command {
@@ -93,16 +93,18 @@ func newTagDeleteCmd() *cobra.Command {
 	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to delete tag")
 	f.BoolVar(&c.DryRun, "dry-run", false, "simulate tag deletion \"for real\"")
 	f.BoolVarP(&c.Regex, "regex", "r", false, "matches tag by regex (bad performance warning, it'll scan over all tags of the repo)")
+	f.BoolVarP(&c.SemVer, "semver", "s", false, "matches tag by semantic versioning (bad performance warning, it'll scan over all tags of the repo)")
 	return cmd
 }
 
 func (c *tagDeleteCmd) run() error {
 	if c.Regex {
-		var regex []*regexp.Regexp
-		for _, tag := range c.Tags {
-			regex = append(regex, regexp.MustCompile(tag))
-		}
-		return github.DeleteReleasesAndTagsByRegex(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, regex, c.DryRun)
+		matcher := github.NewRegexMatcher(c.Tags)
+		return github.DeleteMatchesReleasesAndTags(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, matcher, c.DryRun)
+	}
+	if c.SemVer {
+		matcher := github.NewSemVerMatcher(c.Tags)
+		return github.DeleteMatchesReleasesAndTags(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, matcher, c.DryRun)
 	}
 	return github.DeleteReleasesAndTags(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.Tags, c.DryRun)
 }

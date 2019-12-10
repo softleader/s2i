@@ -4,8 +4,8 @@ go 1.12
 
 require (
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
-	github.com/coreos/go-semver v0.2.0
-	github.com/google/go-github/v21 v21.0.1
+	github.com/coreos/go-semver v0.3.0
+	github.com/google/go-github/v28 v28.1.1
 	github.com/manifoldco/promptui v0.3.2
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5

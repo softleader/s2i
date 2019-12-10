@@ -3,57 +3,45 @@ package github
 import (
 	"context"
 	"fmt"
-	"github.com/google/go-github/v21/github"
+	"github.com/google/go-github/v28/github"
 	"github.com/sirupsen/logrus"
-	"regexp"
 )
 
-// DeleteReleasesAndTagsByRegex 依照 regex 刪除符合的 release 及其 tag
-func DeleteReleasesAndTagsByRegex(log *logrus.Logger, token, owner, repo string, regex []*regexp.Regexp, dryRun bool) error {
+// DeleteMatchesReleasesAndTags 刪除所有符合的 release 及其 tag
+func DeleteMatchesReleasesAndTags(log *logrus.Logger, token, owner, repo string, matcher TagMatcher, dryRun bool) error {
 	ctx := context.Background()
 	client, err := newTokenClient(ctx, token)
 	if err != nil {
 		return err
 	}
 
-	opt := &github.ListOptions{}
+	opt := &github.ListOptions{
+		Page:    1,
+		PerPage: 100,
+	}
 	for {
-		tags, resp, err := client.Repositories.ListTags(ctx, owner, repo, nil)
+		log.Debugf("fetching page %v of tags", opt.Page)
+		tags, resp, err := client.Repositories.ListTags(ctx, owner, repo, opt)
 		if err != nil {
 			return err
 		}
-		if err := deleteReleasesAndTagsByRegex(ctx, log, client, owner, repo, tags, regex, dryRun); err != nil {
-			return err
+		for _, tag := range tags {
+			if matcher.Matches(tag.GetName()) {
+				log.Infof("'%s' matches! start to delete it...", tag.GetName())
+				if err := deleteReleaseAndTag(ctx, log, client, owner, repo, tag.GetName(), dryRun); err != nil {
+					return err
+				}
+				log.Infof("'%s' has been deleted from GitHub", tag.GetName())
+			}
 		}
 		if resp.NextPage == 0 {
 			break
 		}
+		log.Debugf("moving to the next page: %v/%v", resp.NextPage, resp.LastPage)
 		opt.Page = resp.NextPage
 	}
 
 	return nil
-}
-
-func deleteReleasesAndTagsByRegex(ctx context.Context, log *logrus.Logger, client *github.Client, owner, repo string, tags []*github.RepositoryTag, regex []*regexp.Regexp, dryRun bool) error {
-	for _, tag := range tags {
-		if anyMatch(regex, tag.GetName()) {
-			log.Infof("one the of regex matches '%s', start to delete it...", tag.GetName())
-			if err := deleteReleaseAndTag(ctx, log, client, owner, repo, tag.GetName(), dryRun); err != nil {
-				return err
-			}
-			log.Infof("'%s' has been deleted from GitHub", tag.GetName())
-		}
-	}
-	return nil
-}
-
-func anyMatch(regex []*regexp.Regexp, s string) bool {
-	for _, r := range regex {
-		if r.MatchString(s) {
-			return true
-		}
-	}
-	return false
 }
 
 // DeleteReleasesAndTags 刪除多筆 release 及其 refs/tag

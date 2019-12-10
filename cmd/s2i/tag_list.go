@@ -6,7 +6,6 @@ import (
 	"github.com/softleader/s2i/pkg/github"
 	"github.com/spf13/cobra"
 	"os"
-	"regexp"
 )
 
 const pluginTagListDesc = `列出 tag 名稱, 發佈時間及發佈人員
@@ -31,6 +30,7 @@ type tagListCmd struct {
 	SourceRepo  string
 	Interactive bool
 	Regex       bool
+	SemVer      bool
 }
 
 func newTagListCmd() *cobra.Command {
@@ -72,16 +72,18 @@ func newTagListCmd() *cobra.Command {
 	f.StringVar(&c.SourceOwner, "source-owner", c.SourceOwner, "name of the owner (user or org) of the repo to list tag")
 	f.StringVar(&c.SourceRepo, "source-repo", c.SourceRepo, "name of repo to list tag")
 	f.BoolVarP(&c.Regex, "regex", "r", false, "matches tag by regex (bad performance warning, it'll scan over all tags of the repo)")
+	f.BoolVarP(&c.SemVer, "semver", "s", false, "matches tag by semantic versioning (bad performance warning, it'll scan over all tags of the repo)")
 	return cmd
 }
 
 func (c *tagListCmd) run() error {
 	if c.Regex {
-		var regex []*regexp.Regexp
-		for _, tag := range c.Tags {
-			regex = append(regex, regexp.MustCompile(tag))
-		}
-		return github.ListReleaseByRegex(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, regex)
+		matcher := github.NewRegexMatcher(c.Tags)
+		return github.ListReleaseByMatcher(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, matcher)
+	}
+	if c.SemVer {
+		matcher := github.NewSemVerMatcher(c.Tags)
+		return github.ListReleaseByMatcher(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, matcher)
 	}
 	return github.ListRelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.Tags)
 }
