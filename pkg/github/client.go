@@ -3,7 +3,7 @@ package github
 import (
 	"context"
 	"fmt"
-	"github.com/coreos/go-semver/semver"
+	"github.com/blang/semver"
 	"github.com/google/go-github/v28/github"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
@@ -44,17 +44,22 @@ func FindNextReleaseVersion(log *logrus.Logger, token, owner, repo string) (stri
 	tag := rr.GetTagName()
 	log.Debugf("found %s drafted by %s published at %s", tag, rr.GetAuthor().GetLogin(), rr.GetPublishedAt())
 	version := strings.TrimPrefix(tag, "v")
-	sv, err := semver.NewVersion(version)
+	sv, err := semver.Parse(version)
 	if err != nil {
 		return "", err
 	}
-	sv.BumpPatch()
+	bumpPatch(&sv)
 	next := sv.String()
 	if strings.HasPrefix(tag, "v") {
 		next = "v" + next
 	}
 	return next, nil
+}
 
+func bumpPatch(sv *semver.Version) {
+	sv.Patch += 1
+	sv.Pre = nil
+	sv.Build = nil
 }
 
 // Remote 回傳從 .git 中找到的 token, owner and repo

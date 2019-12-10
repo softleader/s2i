@@ -21,17 +21,19 @@ func DeleteMatchesReleasesAndTags(log *logrus.Logger, token, owner, repo string,
 	}
 	for {
 		log.Debugf("fetching page %v of tags", opt.Page)
-		tags, resp, err := client.Repositories.ListTags(ctx, owner, repo, opt)
+		tags, resp, err := client.Repositories.ListTags(ctx, owner, repo, nil)
 		if err != nil {
 			return err
 		}
 		for _, tag := range tags {
-			if matcher.Matches(tag.GetName()) {
-				log.Infof("'%s' matches! start to delete it...", tag.GetName())
-				if err := deleteReleaseAndTag(ctx, log, client, owner, repo, tag.GetName(), dryRun); err != nil {
-					return err
+			if name := tag.GetName(); len(name) > 0 {
+				if matcher.Matches(name) {
+					log.Infof("'%s' matches! start to delete it...", name)
+					if err := deleteReleaseAndTag(ctx, log, client, owner, repo, name, dryRun); err != nil {
+						return err
+					}
+					log.Infof("'%s' has been deleted from GitHub", name)
 				}
-				log.Infof("'%s' has been deleted from GitHub", tag.GetName())
 			}
 		}
 		if resp.NextPage == 0 {

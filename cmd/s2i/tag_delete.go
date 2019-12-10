@@ -19,13 +19,22 @@ s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調�
 
 	- git 資訊: '--source-owner', '--source-repo'
 
-傳入 '--regex' 將以 regular expression 方式過濾 match 的 tag, 並刪除之
+傳入 '--regex' 將以 regular expression 方式模糊過濾 tag, 並刪除之
 
 	$ slctl s2i tag delete REGEX.. -r
 
+傳入 '--semver' 將以 semantic versioning 2.0.0 方式模糊過濾 tag, 並刪除之
+建議可查看 https://devhints.io/semver
+
+	$ slctl s2i tag delete RANGE.. -s
+
 傳入 '--dry-run' 將 "模擬" 刪除, 不會真的作用到 GitHub 上, 通常可用於檢視 regex 是否如預期
 
-	$ slctl s2i tag delete REGEX... -r --dry-run
+	$ slctl s2i tag delete RANGE... -s --dry-run
+
+模糊過濾 flag ('-r' 或 '-s' 等) 使用上請注意: 
+- 將會 scan 所有 GitHub 上所有的 tag, 效能自然會比完全比對 tag 來得差
+- 判斷先後順序依序為: '-r', '-s'
 
 Example:
 
@@ -37,6 +46,9 @@ Example:
 
 	# 在當前目錄的專案中, "模擬" 刪除所有名稱為 1 開頭或 2 開頭的 tag 及其 release 
 	$ slctl s2i tag delete ^1 ^2 -r --dry-run
+
+	# 在當前目錄的專案中, "模擬" 刪除所有小於 2.5.x 開頭的 tag 及其 release 
+	$ slctl s2i tag delete "<2.5.x" -s --dry-run
 
 	# 刪除指定專案 github.com/me/my-repo 的所有 tag 及其 release
 	$ slctl s2i tag delete .+ -r --source-owner me --source-repo my-repo
@@ -99,11 +111,17 @@ func newTagDeleteCmd() *cobra.Command {
 
 func (c *tagDeleteCmd) run() error {
 	if c.Regex {
-		matcher := github.NewRegexMatcher(c.Tags)
+		matcher, err := github.NewRegexMatcher(c.Tags)
+		if err != nil {
+			return err
+		}
 		return github.DeleteMatchesReleasesAndTags(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, matcher, c.DryRun)
 	}
 	if c.SemVer {
-		matcher := github.NewSemVerMatcher(c.Tags)
+		matcher, err := github.NewSemVerMatcher(c.Tags)
+		if err != nil {
+			return err
+		}
 		return github.DeleteMatchesReleasesAndTags(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, matcher, c.DryRun)
 	}
 	return github.DeleteReleasesAndTags(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.Tags, c.DryRun)

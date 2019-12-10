@@ -1,24 +1,29 @@
 package github
 
 import (
-	"github.com/coreos/go-semver/semver"
+	"fmt"
+	"github.com/blang/semver"
 	"regexp"
 	"strings"
 )
 
 // TagMatcher 判斷是否有 match tags
 type TagMatcher interface {
-	// Matches 傳入的 tag 是否匹配
-	Matches(tag string) bool
+	// Matches 傳入的 string 是否匹配
+	Matches(s string) bool
 }
 
 // NewRegexMatcher 建立 RegexMatcher 物件
-func NewRegexMatcher(expressions []string) *RegexMatcher {
+func NewRegexMatcher(exprs []string) (*RegexMatcher, error) {
 	m := &RegexMatcher{}
-	for _, expression := range expressions {
-		m.regexps = append(m.regexps, regexp.MustCompile(expression))
+	for _, expr := range exprs {
+		rr, err := regexp.Compile(expr)
+		if err != nil {
+			return nil, fmt.Errorf("requires a valid regexp expression: %s", err)
+		}
+		m.regexps = append(m.regexps, rr)
 	}
-	return m
+	return m, nil
 }
 
 // RegexMatcher regex 判斷
@@ -27,9 +32,9 @@ type RegexMatcher struct {
 }
 
 // Matches 判斷傳入 tag 是否匹配
-func (m *RegexMatcher) Matches(tag string) bool {
+func (m *RegexMatcher) Matches(s string) bool {
 	for _, r := range m.regexps {
-		if r.MatchString(tag) {
+		if r.MatchString(s) {
 			return true
 		}
 	}
@@ -37,26 +42,32 @@ func (m *RegexMatcher) Matches(tag string) bool {
 }
 
 // NewSemVerMatcher 建立 SemVerMatcher 物件
-func NewSemVerMatcher(versions []string) *SemVerMatcher {
+func NewSemVerMatcher(ranges []string) (*SemVerMatcher, error) {
 	m := &SemVerMatcher{}
-	for _, version := range versions {
-		m.versions = append(m.versions, semver.Must(semver.NewVersion(version)))
+	for _, r := range ranges {
+		rr, err := semver.ParseRange(r)
+		if err != nil {
+			return nil, fmt.Errorf("requires a valid semver2 ranges: %s", err)
+		}
+		if m.r == nil {
+			m.r = rr
+		} else {
+			m.r = m.r.OR(rr)
+		}
 	}
-	return m
+	return m, nil
 }
 
 // SemVerMatcher 以 Semantic Versioning 2.0.0 判斷
 type SemVerMatcher struct {
-	versions []*semver.Version
+	r semver.Range
 }
 
 // Matches 判斷傳入 tag 是否匹配
-func (m *SemVerMatcher) Matches(tag string) bool {
-	for _, v := range m.versions {
-		other := semver.Must(semver.NewVersion(strings.TrimPrefix(tag, "v")))
-		if v.Equal(*other) {
-			return true
-		}
+func (m *SemVerMatcher) Matches(s string) bool {
+	v, err := semver.Parse(strings.TrimPrefix(s, "v"))
+	if err != nil {
+		return false
 	}
-	return false
+	return m.r(v)
 }

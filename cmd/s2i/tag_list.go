@@ -19,9 +19,18 @@ s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調�
 
 	- git 資訊: '--source-owner', '--source-repo'
 
-傳入 '--regex' 將以 regular expression 方式過濾 match 的 tag, 並列出之
+傳入 '--regex' 將以 regular expression 方式模糊過濾 tag, 並列出之
 
 	$ slctl s2i tag list ^1. -r
+
+傳入 '--semver' 將以 semantic versioning 2.0.0 方式模糊過濾 tag, 並列出之
+建議可查看 https://devhints.io/semver
+
+	$ slctl s2i tag list RANGE.. -s
+
+模糊過濾 flag ('-r' 或 '-s' 等) 使用上請注意: 
+- 將會 scan 所有 GitHub 上所有的 tag, 效能自然會比完全比對 tag 來得差
+- 判斷先後順序依序為: '-r', '-s'
 `
 
 type tagListCmd struct {
@@ -78,11 +87,17 @@ func newTagListCmd() *cobra.Command {
 
 func (c *tagListCmd) run() error {
 	if c.Regex {
-		matcher := github.NewRegexMatcher(c.Tags)
+		matcher, err := github.NewRegexMatcher(c.Tags)
+		if err != nil {
+			return err
+		}
 		return github.ListReleaseByMatcher(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, matcher)
 	}
 	if c.SemVer {
-		matcher := github.NewSemVerMatcher(c.Tags)
+		matcher, err := github.NewSemVerMatcher(c.Tags)
+		if err != nil {
+			return err
+		}
 		return github.ListReleaseByMatcher(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, matcher)
 	}
 	return github.ListRelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.Tags)

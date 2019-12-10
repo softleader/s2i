@@ -2,7 +2,7 @@ package docker
 
 import (
 	"fmt"
-	"github.com/coreos/go-semver/semver"
+	"github.com/blang/semver"
 	"strings"
 )
 
@@ -18,11 +18,16 @@ type SoftleaderHubImage struct {
 // SetPreRelease 設定 tag 的 pre-release 版號
 func (i *SoftleaderHubImage) SetPreRelease(preRelease string) {
 	version := strings.TrimPrefix(i.Tag, "v")
-	sv, err := semver.NewVersion(version)
+	sv, err := semver.Parse(version)
 	if err != nil {
 		return
 	}
-	sv.PreRelease = semver.PreRelease(preRelease)
+	sv.Pre = nil
+	prv, err := semver.NewPRVersion(preRelease)
+	if err != nil {
+		return
+	}
+	sv.Pre = append(sv.Pre, prv)
 	pr := sv.String()
 	if strings.HasPrefix(i.Tag, "v") {
 		pr = "v" + pr
@@ -45,9 +50,9 @@ func (i *SoftleaderHubImage) CheckValid() error {
 	}
 	// GitHub 建議我們用 v 開頭, 但 v 開頭不符合 semver, 所以檢查時固定拿掉
 	v := strings.TrimPrefix(i.Tag, "v")
-	_, err := semver.NewVersion(v)
+	_, err := semver.Parse(v)
 	if err != nil {
-		return fmt.Errorf("requires valid SemVer2 tag: %s", err)
+		return fmt.Errorf("requires valid semver2 tag: %s", err)
 	}
 	return nil
 }

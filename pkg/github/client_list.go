@@ -25,8 +25,10 @@ func ListReleaseByMatcher(log *logrus.Logger, token, owner, repo string, matcher
 			return err
 		}
 		for _, release := range releases {
-			if matcher.Matches(release.GetName()) {
-				log.Infof("%s\t%s\t%s", release.GetName(), release.GetPublishedAt(), release.GetAuthor().GetLogin())
+			if name := release.GetName(); len(name) > 0 {
+				if matcher.Matches(name) {
+					log.Infof("%s\t%s\t%s", name, release.GetPublishedAt(), release.GetAuthor().GetLogin())
+				}
 			}
 		}
 		if resp.NextPage == 0 {
