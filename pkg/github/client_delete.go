@@ -21,7 +21,7 @@ func DeleteMatchesReleasesAndTags(log *logrus.Logger, token, owner, repo string,
 	}
 	for {
 		log.Debugf("fetching page %v of tags", opt.Page)
-		tags, resp, err := client.Repositories.ListTags(ctx, owner, repo, nil)
+		tags, resp, err := client.Repositories.ListTags(ctx, owner, repo, opt)
 		if err != nil {
 			return err
 		}
