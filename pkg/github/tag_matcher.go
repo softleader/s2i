@@ -9,8 +9,8 @@ import (
 
 // TagMatcherStrategy 用來方便判斷是哪個 matcher
 type TagMatcherStrategy struct {
-	Regex  bool
-	SemVer bool
+	Regex  bool `yaml:"regex"`
+	SemVer bool `yaml:"semver"`
 }
 
 // TagMatcher 判斷是否有 match tags

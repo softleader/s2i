@@ -34,11 +34,11 @@ s2i 會試著從當前目錄收集專案資訊, 你都可以自行傳入做調�
 `
 
 type tagListCmd struct {
-	Tags        []string
-	SourceOwner string
-	SourceRepo  string
-	Interactive bool
-	github.TagMatcherStrategy
+	Tags                      []string
+	SourceOwner               string `yaml:"source-owner"`
+	SourceRepo                string `yaml:"source-repo"`
+	Interactive               bool
+	github.TagMatcherStrategy `yaml:"tag-matcher-strategy"`
 }
 
 func newTagListCmd() *cobra.Command {

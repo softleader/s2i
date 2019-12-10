@@ -55,12 +55,12 @@ Example:
 `
 
 type tagDeleteCmd struct {
-	Tags        []string
-	SourceOwner string
-	SourceRepo  string
-	DryRun      bool
-	Interactive bool
-	github.TagMatcherStrategy
+	Tags                      []string
+	SourceOwner               string `yaml:"source-owner"`
+	SourceRepo                string `yaml:"source-repo"`
+	DryRun                    bool   `yaml:"dry-run"`
+	Interactive               bool
+	github.TagMatcherStrategy `yaml:"tag-matcher-strategy"`
 }
 
 func newTagDeleteCmd() *cobra.Command {
