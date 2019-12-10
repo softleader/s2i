@@ -18,7 +18,7 @@ func tagDeleteQuestions(c *tagDeleteCmd) error {
 		return err
 	}
 
-	if err := prompt.AskYesNoBool("Delete tags for real? no for just simulate", c.DryRun, &c.DryRun); err != nil {
+	if err := prompt.AskYesNoBool("Simulate tag deletion", c.DryRun, &c.DryRun); err != nil {
 		return err
 	}
 
