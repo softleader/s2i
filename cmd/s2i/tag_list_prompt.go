@@ -6,11 +6,11 @@ import (
 )
 
 func tagListQuestions(c *tagListCmd) error {
-	if err := prompt.AskArrayRequired("Tags to list (use space to separate each tags if more than one tag)", c.Tags, &c.Tags, sep); err != nil {
+	if err := prompt.AskTagMatcherStrategy("Choose tag matcher strategy", &c.TagMatcherStrategy); err != nil {
 		return err
 	}
 
-	if err := prompt.AskYesNoBool("Use regex to matches tags?", c.Regex, &c.Regex); err != nil {
+	if err := prompt.AskArrayRequired("Tags to list (use space to separate each tags if more than one tag)", c.Tags, &c.Tags, sep); err != nil {
 		return err
 	}
 

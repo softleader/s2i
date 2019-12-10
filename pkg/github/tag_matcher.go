@@ -7,6 +7,12 @@ import (
 	"strings"
 )
 
+// TagMatcherStrategy 用來方便判斷是哪個 matcher
+type TagMatcherStrategy struct {
+	Regex  bool
+	SemVer bool
+}
+
 // TagMatcher 判斷是否有 match tags
 type TagMatcher interface {
 	// Matches 傳入的 string 是否匹配

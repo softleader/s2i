@@ -5,6 +5,7 @@ import (
 	"github.com/manifoldco/promptui"
 	"github.com/sirupsen/logrus"
 	"github.com/softleader/s2i/pkg/deployer"
+	"github.com/softleader/s2i/pkg/github"
 	"gopkg.in/yaml.v2"
 	"strconv"
 	"strings"
@@ -158,5 +159,30 @@ func AskServiceID(log *logrus.Logger, agent, agentVersion, deployerURL, app, def
 		return err
 	}
 	*ref = services[i].ID
+	return nil
+}
+
+// AskTagMatcherStrategy 問 tag matcher  問題
+func AskTagMatcherStrategy(question string, strategy *github.TagMatcherStrategy) (err error) {
+	matchers := []string{"exact match", "regex", "semver"}
+	prompt := promptui.Select{
+		Label: question,
+		Items: matchers,
+		Searcher: func(input string, index int) bool {
+			matcher := matchers[index]
+			name := strings.Replace(strings.ToLower(matcher), " ", "", -1)
+			input = strings.Replace(strings.ToLower(input), " ", "", -1)
+			return strings.Contains(name, input)
+		},
+	}
+	i, _, err := prompt.Run()
+	if err != nil {
+		return err
+	}
+	if i == 1 {
+		strategy.Regex = true
+	} else if i == 2 {
+		strategy.SemVer = true
+	}
 	return nil
 }

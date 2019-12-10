@@ -60,8 +60,7 @@ type tagDeleteCmd struct {
 	SourceRepo  string
 	DryRun      bool
 	Interactive bool
-	Regex       bool
-	SemVer      bool
+	github.TagMatcherStrategy
 }
 
 func newTagDeleteCmd() *cobra.Command {

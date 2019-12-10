@@ -38,8 +38,7 @@ type tagListCmd struct {
 	SourceOwner string
 	SourceRepo  string
 	Interactive bool
-	Regex       bool
-	SemVer      bool
+	github.TagMatcherStrategy
 }
 
 func newTagListCmd() *cobra.Command {

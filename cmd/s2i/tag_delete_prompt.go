@@ -10,15 +10,15 @@ const (
 )
 
 func tagDeleteQuestions(c *tagDeleteCmd) error {
+	if err := prompt.AskTagMatcherStrategy("Choose tag matcher strategy", &c.TagMatcherStrategy); err != nil {
+		return err
+	}
+
 	if err := prompt.AskArrayRequired("Tags to delete (use space to separate each tags if more than one tag)", c.Tags, &c.Tags, sep); err != nil {
 		return err
 	}
 
 	if err := prompt.AskYesNoBool("Delete tags for real? no for just simulate", c.DryRun, &c.DryRun); err != nil {
-		return err
-	}
-
-	if err := prompt.AskYesNoBool("Use regex to matches tags?", c.Regex, &c.Regex); err != nil {
 		return err
 	}
 
