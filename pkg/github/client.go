@@ -57,7 +57,7 @@ func FindNextReleaseVersion(log *logrus.Logger, token, owner, repo string) (stri
 }
 
 func bumpPatch(sv *semver.Version) {
-	sv.Patch += 1
+	sv.Patch++
 	sv.Pre = nil
 	sv.Build = nil
 }

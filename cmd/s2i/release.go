@@ -2,10 +2,12 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/softleader/s2i/pkg/docker"
 	"github.com/softleader/s2i/pkg/github"
 	"github.com/softleader/s2i/pkg/jenkins"
+	"github.com/softleader/s2i/pkg/slack"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
@@ -41,15 +43,17 @@ var (
 )
 
 type releaseCmd struct {
-	interactive  bool
-	promptSize   int
-	SourceOwner  string `yaml:"source-owner"`
-	SourceRepo   string `yaml:"source-repo"`
-	SourceBranch string `yaml:"source-branch"`
-	Image        *docker.SoftleaderHubImage
-	Jenkins      string
-	Deployer     string
-	ServiceID    string `yaml:"service-id"`
+	interactive     bool
+	promptSize      int
+	SourceOwner     string `yaml:"source-owner"`
+	SourceRepo      string `yaml:"source-repo"`
+	SourceBranch    string `yaml:"source-branch"`
+	Image           *docker.SoftleaderHubImage
+	Jenkins         string
+	Deployer        string
+	ServiceID       string `yaml:"service-id"`
+	SkipSlack       bool   `yaml:"skip-slack"`
+	SlackWebhookURL string `yaml:"slack-webhook-url"`
 }
 
 func newReleaseCmd() *cobra.Command {
@@ -106,6 +110,8 @@ func newReleaseCmd() *cobra.Command {
 	f.StringVar(&c.Jenkins, "jenkins", "https://jenkins.softleader.com.tw", "jenkins to run the pipeline")
 	f.StringVar(&c.Deployer, "deployer", "http://softleader.com.tw:5678", "deployer to deploy")
 	f.StringVar(&c.ServiceID, "service-id", "", "docker swarm service id to update")
+	f.BoolVar(&c.SkipSlack, "skip-slack", false, "skip hook to Slack if update SIT service")
+	f.StringVar(&c.SlackWebhookURL, "slack-webhook-url", "https://hooks.slack.com/services/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", "slack webhook url")
 	return cmd
 }
 
@@ -129,13 +135,17 @@ func (c *releaseCmd) run() error {
 	logrus.Printf("Everything is all set, you can check the progress at: %s/job/%s", c.Jenkins, c.SourceRepo)
 
 	if c.ServiceID != "" {
-		ensureJenkinsfileContainsServiceIDHook()
+		if ensureJenkinsfileContainsServiceIDHook() {
+			if !c.SkipSlack {
+				slack.Post(c.SlackWebhookURL, fmt.Sprintf("SIT %s@%s 過版", c.Image.Name, c.Image.Tag))
+			}
+		}
 	}
 	return nil
 }
 
 // service id 需要 Jenkinsfile 也要配合修改, 如果發現沒有查到關鍵字就提醒一下吧
-func ensureJenkinsfileContainsServiceIDHook() {
+func ensureJenkinsfileContainsServiceIDHook() (contains bool) {
 	pwd, err := os.Getwd()
 	if err != nil {
 		return
@@ -149,5 +159,7 @@ func ensureJenkinsfileContainsServiceIDHook() {
 	if !hook.MatchString(jenkinsfile) {
 		logrus.Warnf(`not found any hook stage in '%s', auto serviceID update might not work
 read more: https://github.com/softleader/softleader-microservice-wiki/wiki/Jenkins-Hook-to-Update-Service-on-Deployer`, p)
+		return
 	}
+	return true
 }

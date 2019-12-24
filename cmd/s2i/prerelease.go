@@ -2,12 +2,14 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/softleader/s2i/pkg/deployer"
 	"github.com/softleader/s2i/pkg/docker"
 	"github.com/softleader/s2i/pkg/github"
 	"github.com/softleader/s2i/pkg/jib"
 	"github.com/softleader/s2i/pkg/mvn"
+	"github.com/softleader/s2i/pkg/slack"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -75,6 +77,8 @@ type prereleaseCmd struct {
 	Auth            *jib.Auth
 	ServiceID       string `yaml:"service-id"`
 	ShipStrategy    int    `yaml:"build-strategy"`
+	SkipSlack       bool   `yaml:"skip-slack"`
+	SlackWebhookURL string `yaml:"slack-webhook-url"`
 	pwd             string
 }
 
@@ -144,6 +148,8 @@ func newPrereleaseCmd() *cobra.Command {
 	f.StringVar(&c.Auth.Password, "jib-auth-password", "", "password of docker registry for jib")
 	f.StringVar(&c.ServiceID, "service-id", "", "docker swarm service id to update")
 	f.IntVarP(&c.ShipStrategy, "ship-strategy", "S", 0, "specify how to ship source, 0 for auto-detect, 1 for jib, 2 for docker")
+	f.BoolVar(&c.SkipSlack, "skip-slack", false, "skip hook to Slack if update SIT service")
+	f.StringVar(&c.SlackWebhookURL, "slack-webhook-url", "https://hooks.slack.com/services/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", "slack webhook url")
 	return cmd
 }
 
@@ -168,6 +174,9 @@ func (c *prereleaseCmd) run() error {
 		if err := deployer.UpdateService(logrus.StandardLogger(), "s2i", metadata.String(), c.Deployer, c.ServiceID, c.Image); err != nil {
 			return err
 		}
+	}
+	if !c.SkipSlack {
+		slack.Post(c.SlackWebhookURL, fmt.Sprintf("SIT %s@%s 過版", c.Image.Name, c.Image.Tag))
 	}
 	logrus.Printf("Everything is all set, you are good to go.")
 	return nil
