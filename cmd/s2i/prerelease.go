@@ -148,7 +148,7 @@ func newPrereleaseCmd() *cobra.Command {
 	f.StringVar(&c.Auth.Password, "jib-auth-password", "", "password of docker registry for jib")
 	f.StringVar(&c.ServiceID, "service-id", "", "docker swarm service id to update")
 	f.IntVarP(&c.ShipStrategy, "ship-strategy", "S", 0, "specify how to ship source, 0 for auto-detect, 1 for jib, 2 for docker")
-	f.BoolVar(&c.SkipSlack, "skip-slack", false, "skip hook to Slack if update SIT service")
+	f.BoolVar(&c.SkipSlack, "skip-slack", false, "skip slack webhook")
 	f.StringVar(&c.SlackWebhookURL, "slack-webhook-url", "https://hooks.slack.com/services/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", "slack webhook url")
 	return cmd
 }

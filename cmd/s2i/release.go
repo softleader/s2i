@@ -110,7 +110,7 @@ func newReleaseCmd() *cobra.Command {
 	f.StringVar(&c.Jenkins, "jenkins", "https://jenkins.softleader.com.tw", "jenkins to run the pipeline")
 	f.StringVar(&c.Deployer, "deployer", "http://softleader.com.tw:5678", "deployer to deploy")
 	f.StringVar(&c.ServiceID, "service-id", "", "docker swarm service id to update")
-	f.BoolVar(&c.SkipSlack, "skip-slack", false, "skip hook to Slack if update SIT service")
+	f.BoolVar(&c.SkipSlack, "skip-slack", false, "skip slack webhook")
 	f.StringVar(&c.SlackWebhookURL, "slack-webhook-url", "https://hooks.slack.com/services/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", "slack webhook url")
 	return cmd
 }
