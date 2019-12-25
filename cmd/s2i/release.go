@@ -137,7 +137,9 @@ func (c *releaseCmd) run() error {
 	if c.ServiceID != "" {
 		if ensureJenkinsfileContainsServiceIDHook() {
 			if !c.SkipSlack {
-				slack.Post(c.SlackWebhookURL, fmt.Sprintf("SIT %s@%s 過版", c.Image.Name, c.Image.Tag))
+				if err := slack.Post(c.SlackWebhookURL, fmt.Sprintf("SIT %s@%s 過版", c.Image.Name, c.Image.Tag)); err != nil {
+					logrus.Debugf("failed posting slack webhook: %s", err)
+				}
 			}
 		}
 	}

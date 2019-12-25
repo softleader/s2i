@@ -176,7 +176,9 @@ func (c *prereleaseCmd) run() error {
 		}
 	}
 	if !c.SkipSlack {
-		slack.Post(c.SlackWebhookURL, fmt.Sprintf("SIT %s@%s 過版", c.Image.Name, c.Image.Tag))
+		if err := slack.Post(c.SlackWebhookURL, fmt.Sprintf("SIT %s@%s 過版", c.Image.Name, c.Image.Tag)); err != nil {
+			logrus.Debugf("failed posting slack webhook: %s", err)
+		}
 	}
 	logrus.Printf("Everything is all set, you are good to go.")
 	return nil
