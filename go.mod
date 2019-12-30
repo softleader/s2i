@@ -8,6 +8,7 @@ require (
 	github.com/google/go-github/v28 v28.1.1
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/manifoldco/promptui v0.3.2
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nlopes/slack v0.6.0
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/sirupsen/logrus v1.4.2

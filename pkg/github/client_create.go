@@ -7,11 +7,11 @@ import (
 )
 
 // CreateRelease 建立 github 的 release
-func CreateRelease(log *logrus.Logger, token, owner, repo, branch, tag string) error {
+func CreateRelease(log *logrus.Logger, token, owner, repo, branch, tag string) (*Release, error) {
 	ctx := context.Background()
 	client, err := newTokenClient(ctx, token)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	r := &github.RepositoryRelease{
 		TagName:         &tag,
@@ -20,18 +20,18 @@ func CreateRelease(log *logrus.Logger, token, owner, repo, branch, tag string) e
 	log.Debugf("creating release %s for %s/%s branch: %s", tag, owner, repo, branch)
 	release, _, err := client.Repositories.CreateRelease(ctx, owner, repo, r)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	log.Printf("Successfully created release: %s", release.GetHTMLURL())
-	return nil
+	return newRelease(release), nil
 }
 
 // CreatePrerelease 建立 github 的 pre-release
-func CreatePrerelease(log *logrus.Logger, token, owner, repo, branch, tag string, force bool) error {
+func CreatePrerelease(log *logrus.Logger, token, owner, repo, branch, tag string, force bool) (*Release, error) {
 	ctx := context.Background()
 	client, err := newTokenClient(ctx, token)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	pre := true
 	r := &github.RepositoryRelease{
@@ -44,22 +44,22 @@ func CreatePrerelease(log *logrus.Logger, token, owner, repo, branch, tag string
 	if err != nil {
 		githubErr, ok := err.(*github.ErrorResponse)
 		if !ok {
-			return err
+			return nil, err
 		}
 		if force && isTagNameAlreadyExists(githubErr.Errors) {
 			log.Debugf("tag name %s already exists, force to delete it..", tag)
 			if err := deleteReleaseAndTag(ctx, log, client, owner, repo, tag, false); err != nil {
-				return err
+				return nil, err
 			}
 		}
 		log.Debugf("creating pre-release %s again for %s/%s branch: %s", tag, owner, repo, branch)
 		if release, _, err = client.Repositories.CreateRelease(ctx, owner, repo, r); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	log.Printf("Successfully created pre-release: %s", release.GetHTMLURL())
-	return nil
+	return newRelease(release), nil
 }
 
 func isTagNameAlreadyExists(errors []github.Error) bool {

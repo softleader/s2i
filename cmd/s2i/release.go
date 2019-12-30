@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/softleader/s2i/pkg/docker"
 	"github.com/softleader/s2i/pkg/github"
@@ -111,12 +110,13 @@ func newReleaseCmd() *cobra.Command {
 	f.StringVar(&c.Deployer, "deployer", "http://softleader.com.tw:5678", "deployer to deploy")
 	f.StringVar(&c.ServiceID, "service-id", "", "docker swarm service id to update")
 	f.BoolVar(&c.SkipSlack, "skip-slack", false, "skip slack webhook")
-	f.StringVar(&c.SlackWebhookURL, "slack-webhook-url", "https://hooks.slack.com/services/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", "slack webhook url")
+	f.StringVar(&c.SlackWebhookURL, "slack-webhook-url", "", "slack webhook url, will override the webhook url cache")
 	return cmd
 }
 
-func (c *releaseCmd) run() error {
-	if err := github.CreateRelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.SourceBranch, c.Image.Tag); err != nil {
+func (c *releaseCmd) run() (err error) {
+	var release *github.Release
+	if release, err = github.CreateRelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.SourceBranch, c.Image.Tag); err != nil {
 		return err
 	}
 
@@ -137,7 +137,7 @@ func (c *releaseCmd) run() error {
 	if c.ServiceID != "" {
 		if ensureJenkinsfileContainsServiceIDHook() {
 			if !c.SkipSlack {
-				if err := slack.Post(c.SlackWebhookURL, fmt.Sprintf("SIT %s@%s 過版", c.Image.Name, c.Image.Tag)); err != nil {
+				if err := slack.Post(logrus.StandardLogger(), metadata, release, c.SlackWebhookURL, c.Image); err != nil {
 					logrus.Debugf("failed posting slack webhook: %s", err)
 				}
 			}
