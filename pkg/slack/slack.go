@@ -60,14 +60,12 @@ func Post(log *logrus.Logger, metadata *release.Metadata, release *github.Releas
 		return ErrMissingSlackWebhookURL
 	}
 	payload := &slack.WebhookMessage{
-		Text: fmt.Sprintf("SIT %s@%s 過版", image.Name, image.Tag),
+		Text: fmt.Sprintf("SIT %s 過版", image.Name),
 	}
 	if release != nil {
 		attachment := newAttachment(release, metadata)
-		log.Debugf("appending attachment: %+v", attachment)
 		payload.Attachments = append(payload.Attachments, attachment)
 	}
-	fmt.Printf("%+v", payload)
 	return slack.PostWebhook(api.WebhookURL, payload)
 }
 
