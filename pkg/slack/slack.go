@@ -31,7 +31,8 @@ Please set SL_PLUGIN_MOUNT variable to manually specify the location for the com
 For more details: https://github.com/softleader/slctl/wiki/Plugins-Guide#mount-volume`)
 	// ErrMissingSlackWebhookURL 代表沒有傳過 --slack-webhook-url
 	ErrMissingSlackWebhookURL = errors.New(`missing slack webhook URL
-You must specify '--slack-webhook-url' at the very first time using slack webhook`)
+You must specify '--slack-webhook-url' at the very first time using slack webhook
+Or use '--skip-slack' to skip hooking slack`)
 )
 
 // API collect slack api information
