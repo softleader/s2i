@@ -8,7 +8,6 @@ import (
 	"github.com/softleader/s2i/pkg/github"
 	"github.com/softleader/s2i/pkg/jib"
 	"github.com/softleader/s2i/pkg/mvn"
-	"github.com/softleader/s2i/pkg/slack"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -77,7 +76,6 @@ type prereleaseCmd struct {
 	ServiceID       string `yaml:"service-id"`
 	ShipStrategy    int    `yaml:"build-strategy"`
 	SkipSlack       bool   `yaml:"skip-slack"`
-	SlackWebhookURL string `yaml:"slack-webhook-url"`
 	pwd             string
 }
 
@@ -148,7 +146,6 @@ func newPrereleaseCmd() *cobra.Command {
 	f.StringVar(&c.ServiceID, "service-id", "", "docker swarm service id to update")
 	f.IntVarP(&c.ShipStrategy, "ship-strategy", "S", 0, "specify how to ship source, 0 for auto-detect, 1 for jib, 2 for docker")
 	f.BoolVar(&c.SkipSlack, "skip-slack", false, "skip slack webhook")
-	f.StringVar(&c.SlackWebhookURL, "slack-webhook-url", "", "slack webhook url, will override the webhook url cache")
 	return cmd
 }
 
@@ -164,20 +161,20 @@ func (c *prereleaseCmd) run() (err error) {
 		return err
 	}
 
-	var release *github.Release
+	hook := deployer.SlackHook{
+		Enabled: false,
+	}
 	if !c.SkipDraft {
-		if release, err = github.CreatePrerelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.SourceBranch, c.Image.Tag, c.Force); err != nil {
+		if hook.Release, err = github.CreatePrerelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.SourceBranch, c.Image.Tag, c.Force); err != nil {
 			return err
 		}
 	}
 	if c.ServiceID != "" {
-		if err := deployer.UpdateService(logrus.StandardLogger(), "s2i", metadata.String(), c.Deployer, c.ServiceID, c.Image); err != nil {
-			return err
+		if !c.SkipSlack && hook.Release != nil {
+			hook.Enabled = true
 		}
-	}
-	if !c.SkipSlack {
-		if err := slack.Post(logrus.StandardLogger(), metadata, release, c.SlackWebhookURL, c.Image); err != nil {
-			logrus.Debugf("failed posting slack webhook: %s", err)
+		if err := deployer.UpdateService(logrus.StandardLogger(), "s2i", metadata.String(), c.Deployer, c.ServiceID, c.Image, hook); err != nil {
+			return err
 		}
 	}
 	logrus.Printf("Everything is all set, you are good to go.")
