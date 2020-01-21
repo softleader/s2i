@@ -160,20 +160,13 @@ func (c *prereleaseCmd) run() (err error) {
 	if err := c.ship(); err != nil {
 		return err
 	}
-
-	hook := deployer.SlackHook{
-		Enabled: false,
-	}
 	if !c.SkipDraft {
-		if hook.Release, err = github.CreatePrerelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.SourceBranch, c.Image.Tag, c.Force); err != nil {
+		if _, err = github.CreatePrerelease(logrus.StandardLogger(), token, c.SourceOwner, c.SourceRepo, c.SourceBranch, c.Image.Tag, c.Force); err != nil {
 			return err
 		}
 	}
 	if c.ServiceID != "" {
-		if !c.SkipSlack && hook.Release != nil {
-			hook.Enabled = true
-		}
-		if err := deployer.UpdateService(logrus.StandardLogger(), "s2i", metadata.String(), c.Deployer, c.ServiceID, c.Image, hook); err != nil {
+		if err := deployer.UpdateService(logrus.StandardLogger(), "s2i", metadata.String(), c.Deployer, c.ServiceID, c.Image, c.SkipSlack); err != nil {
 			return err
 		}
 	}

@@ -5,30 +5,16 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/softleader/s2i/pkg/docker"
-	"github.com/softleader/s2i/pkg/github"
 	"gopkg.in/resty.v1"
-	"strconv"
 )
 
-// SlackHook 代表要 hook slack 的內容
-type SlackHook struct {
-	Enabled bool
-	Release *github.Release
-}
-
 // UpdateService 更新 deployer 的 service
-func UpdateService(log *logrus.Logger, agent, agentVersion, deployer, dockerServiceID string, image *docker.SoftleaderHubImage, hook SlackHook) error {
+func UpdateService(log *logrus.Logger, agent, agentVersion, deployer, dockerServiceID string, image *docker.SoftleaderHubImage, skipSlack bool) error {
 	log.Printf("Updating docker service id: %s", dockerServiceID)
 	params := make(map[string]string)
 	params["image"] = image.String()
-	if hook.Enabled {
-		params["slack"] = "1"
-		params["title"] = hook.Release.TagName
-		params["title_link"] = hook.Release.HTMLURL
-		params["author_name"] = hook.Release.Author.GetLogin()
-		params["author_link"] = hook.Release.Author.GetHTMLURL()
-		params["author_icon"] = hook.Release.Author.GetAvatarURL()
-		params["ts"] = strconv.FormatInt(hook.Release.PublishedAt.Unix(), 10)
+	if skipSlack {
+		params["skip-slack"] = "1"
 	}
 	resty.SetDebug(log.IsLevelEnabled(logrus.DebugLevel))
 	_, err := resty.R().
